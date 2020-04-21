@@ -20,6 +20,13 @@ description:         Please see the README on GitHub at <https://github.com/jeca
 
 dependencies:
 - base >= 4.7 && < 5
+- containers
+- optparse-applicative
+- parsec
+- path
+- path-io
+- relude
+- text
 
 library:
   source-dirs: src
@@ -32,6 +39,13 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -Wall
+    - -Wcompat
+    - -Widentities
+    - -Wincomplete-record-updates
+    - -Wincomplete-uni-patterns
+    - -Wpartial-fields
+    - -Wredundant-constraints
     dependencies:
     - bigball
 
@@ -43,5 +57,16 @@ tests:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -Wall
+    - -Wcompat
+    - -Widentities
+    - -Wincomplete-record-updates
+    - -Wincomplete-uni-patterns
+    - -Wpartial-fields
+    - -Wredundant-constraints
     dependencies:
     - bigball
+
+default-extensions:
+  - NoImplicitPrelude
+  - OverloadedStrings
