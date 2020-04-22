@@ -1,19 +1,21 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-import Relude hiding ((<|>), many)
+import Relude 
 
 import qualified Data.Map.Strict as Map
 import Path
 import Path.IO
 import Text.Parsec.Text
 
+import Files
 import JSGraph
 import Options
 import Parser
 import Project
 
+
 main :: IO ()
-main = runCliParser untangle
+main = runCliParser parseInputAndWriteToOuput
 
 -- IO functions
 
@@ -25,22 +27,39 @@ stringToPath outDirStr = do
     pure $ currentDir </> outDir
 
 
-writeGraph :: Projects -> Path a File -> IO ()
-writeGraph projects file = do
+writeFileTextPath :: MonadIO m => Path a File -> Text -> m ()
+writeFileTextPath file text = do
     ensureDir $ parent file
-    writeFileText (toFilePath file) $ nodesAndEdges projects 
+    writeFileText (toFilePath file) text
 
 
-untangle :: Options -> IO ()
-untangle (Options inputFileStr outputDirStr) = do
+writeFileProjects :: Path a File -> Projects -> IO ()
+writeFileProjects file projects = 
+    writeFileTextPath file $ nodesAndEdges projects 
+
+
+writeProjectsIn :: Projects -> Path Abs Dir -> IO()
+writeProjectsIn projects outputDir = do
+    -- Write the all graph
+    writeFileProjects (outputDir </> $(mkRelFile "all.js")) projects
+    -- For all the project write the graph of the subdir
+    for_ (Map.toList projects) $ \(id_, Project name _) -> do
+        let sub = subProject id_ projects
+        fileName <- parseRelFile $ toString name <> ".js"
+        writeFileProjects (outputDir </> fileName) sub
+    -- Write the html files
+    writeFileTextPath (outputDir </> $(mkRelFile "project.html")) projectHtml
+    let projNames = projName <$> Map.elems projects
+    writeFileTextPath (outputDir </> $(mkRelFile "index.html")) $ indexHtml projNames
+
+
+
+parseInputAndWriteToOuput :: Options -> IO ()
+parseInputAndWriteToOuput (Options inputFileStr outputDirStr) = do
+    -- Parse the file
     res <- parseFromFile parseFile inputFileStr
     case res of
         Left err -> putTextLn $ show err
         Right projects -> do
             outputDir <- stringToPath outputDirStr 
-            writeGraph projects (outputDir </> $(mkRelFile "all.js"))
-            for_ (Map.toList projects) $ \(id_, Project name _) -> do
-                let sub = subProject id_ projects
-                fileName <- parseRelFile $ toString name <> ".js"
-                writeGraph sub (outputDir </> fileName)
-
+            writeProjectsIn projects outputDir

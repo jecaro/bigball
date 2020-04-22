@@ -1,7 +1,7 @@
 module JSGraph (nodesAndEdges)
     where
 
-import Relude hiding ((<|>), many)
+import Relude 
 import Relude.Extra.Map
 
 import Data.List

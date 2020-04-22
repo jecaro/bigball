@@ -8,6 +8,7 @@ copyright:           "2020 Jean-Charles Quillet"
 
 extra-source-files:
 - README.md
+- data/project.html
 
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
@@ -21,6 +22,8 @@ description:         Please see the README on GitHub at <https://github.com/jeca
 dependencies:
 - base >= 4.7 && < 5
 - containers
+- file-embed
+- lucid
 - optparse-applicative
 - parsec
 - path

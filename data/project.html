@@ -1,0 +1,67 @@
+<html>
+<head>
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+    <style type="text/css">
+        #mynetwork {
+            width: 800;
+            height: 800;
+            border: 1px solid lightgray;
+        }
+    </style>
+</head>
+<body>
+<div id="mynetwork"></div>
+
+<script type="text/javascript">
+
+    // Parse url
+    let params = new URLSearchParams(location.search);
+
+    // Load the script which contains the nodes
+    var script = document.createElement("script");
+    script.type = "application/javascript";
+    script.src = params.get('name') + '.js';
+    script.onload = createNetwork
+    document.head.appendChild(script);  
+
+    // Create the graph
+    function createNetwork() {
+        // create a network
+        var container = document.getElementById('mynetwork');
+
+        // provide the data in the vis format
+        var data = {
+            nodes: nodes,
+            edges: edges
+        };
+        var options = {
+            physics: {
+                forceAtlas2Based: {
+                    gravitationalConstant: -26,
+                    centralGravity: 0.005,
+                    springLength: 230,
+                    springConstant: 0.18,
+                    avoidOverlap: 1.5
+                },
+                maxVelocity: 146,
+                solver: 'forceAtlas2Based',
+                timestep: 0.35,
+                stabilization: {
+                    enabled: true,
+                    iterations: 1000,
+                    updateInterval: 25
+                }
+            }   
+        };
+
+        // initialize your network!
+        var network = new vis.Network(container, data, options);
+
+        network.on("stabilizationIterationsDone", function () {
+            network.setOptions( { physics: false } );
+        }); 
+    }
+</script>
+</body>
+</html>
