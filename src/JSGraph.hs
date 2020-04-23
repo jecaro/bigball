@@ -53,7 +53,7 @@ mapProjectsToIndexes projects =
         -- Convert the keys to int ids
         mapWithIndsAsDep = projToInds <$> projects
         -- Fold function to create the output map
-        foldFct :: Text -> [Int] -> Map Int [Int] -> Map Int [Int]
+        foldFct :: Id -> [Int] -> Map Int [Int] -> Map Int [Int]
         foldFct k v m =
             case intIdFromId k of
                 Nothing -> m

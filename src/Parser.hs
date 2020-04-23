@@ -17,7 +17,7 @@ skipLine :: Parser ()
 skipLine = skipTo endOfLine
 
 
-projectNameAndId :: Parser (Text, Text)
+projectNameAndId :: Parser (Text, Id)
 projectNameAndId = do
     void $ string "Project" >> skipTo (string " = \"")
     name <- toText <$> many1 (alphaNum <|> char '_')
@@ -31,7 +31,7 @@ projectEnd :: Parser ()
 projectEnd = string "EndProject" *> skipLine
 
 
-projectParser :: Parser (Text, Project)
+projectParser :: Parser (Id, Project)
 projectParser
     = idAndProject
     <$> projectNameAndId
@@ -47,15 +47,15 @@ sectionEnd :: Parser ()
 sectionEnd = spaces >> string "EndProjectSection" *> skipLine
 
 
-projectId :: Parser Text
-projectId = between (char '{') (char '}') (toText <$> many (noneOf ['\n','}']))
+projectId :: Parser Id
+projectId = Id . toText <$> between (char '{') (char '}') (many (noneOf ['\n','}']))
 
 
-sectionLine :: Parser Text
+sectionLine :: Parser Id
 sectionLine = spaces >> projectId <* skipLine
 
 
-section :: Parser [Text]
+section :: Parser [Id]
 section = between sectionStart sectionEnd $ many (try sectionLine)
 
 
