@@ -5,6 +5,7 @@ module Files (projectHtml, indexHtml)
 import Relude
 
 import Data.FileEmbed
+import qualified Data.Map.Strict as Map
 import Lucid
 
 import Project
@@ -14,20 +15,20 @@ projectHtml :: Text
 projectHtml = decodeUtf8 $(embedFile "data/project.html")
 
 
-indexHtml :: [Project] -> Text
-indexHtml names = toText $ renderText $ index names
+indexHtml :: Projects -> Text
+indexHtml projects = toText . renderText $ index projects
 
 
-index :: [Project] -> Html ()
+index :: Projects -> Html ()
 index projects = 
-    let sorted = sortOn projName projects 
-        aProject :: Text -> Html ()
+    let aProject :: Text -> Html ()
         aProject name = a_ [ href_ $ "project.html?name=" <> name ] $ toHtml name
-        trProject :: Project -> Html ()
-        trProject project = 
+        trProject :: Id -> Project -> Html ()
+        trProject identifier project = 
             tr_ $ do
-                td_ $ aProject $ projName project
-                td_ $ show $ length $ projDependencies project
+                td_ . aProject $ projName project
+                td_ . show . length $ projDependencies project
+                td_ . show . length $ indirect identifier projects
                 
     in 
         html_ $ do
@@ -39,6 +40,8 @@ index projects =
                     thead_ $
                         tr_ $ do
                             th_ "Name"
-                            th_ "Number of direct dependencies"
+                            th_ "Direct dependencies"
+                            th_ "Indirect dependencies"
                     tbody_ $
-                        foldMap trProject sorted
+                        Relude.for_ (Map.toList projects) $ \(identifier, project) -> 
+                            trProject identifier project

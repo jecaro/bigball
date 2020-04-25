@@ -49,8 +49,7 @@ writeProjectsIn projects outputDir = do
         writeFileProjects (outputDir </> fileName) sub
     -- Write the html files
     writeFileTextPath (outputDir </> $(mkRelFile "project.html")) projectHtml
-    let indexHtml' = indexHtml $ Map.elems projects
-    writeFileTextPath (outputDir </> $(mkRelFile "index.html")) indexHtml'
+    writeFileTextPath (outputDir </> $(mkRelFile "index.html")) $ indexHtml projects
 
 
 parseInputAndWriteToOuput :: Options -> IO ()

@@ -35,7 +35,7 @@ projectParser :: Parser (Id, Project)
 projectParser
     = idAndProject
     <$> projectNameAndId
-    <*> option [] section <* projectEnd
+    <*> (fromList <$> option [] section) <* projectEnd
   where idAndProject (name, identifier) ids = (identifier, Project name ids)
 
 
