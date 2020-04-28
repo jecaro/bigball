@@ -25,7 +25,7 @@ index graph =
         head_ $
             title_ "Projects"
         body_ $ do
-            aProject "all"
+            aForGraph "all" "all"
             table_ $ do
                 thead_ $
                     tr_ $ do
@@ -36,8 +36,8 @@ index graph =
                     traverse_ trForVertex (vertices graph)
 
   where
-    aProject :: Text -> Html ()
-    aProject name = a_ [ href_ $ "project.html?name=" <> name ] $ toHtml name
+    aForGraph :: Text -> Text -> Html ()
+    aForGraph name text = a_ [ href_ $ "project.html?name=" <> name ] $ toHtml text
 
     trForVertex :: Vertex -> Html ()
     trForVertex v =
@@ -47,8 +47,7 @@ index graph =
             indirect = nbVertices $ fromVertexIndirect graph v
         in
             tr_ $ do
-                td_ $ aProject name
-                td_ $ show direct
-                td_ $ show indirect
-
+                td_ $ toHtml name
+                td_ $ aForGraph (name <> "_direct") (show direct)
+                td_ $ aForGraph (name <> "_indirect") (show indirect) 
 
