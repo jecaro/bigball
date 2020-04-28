@@ -43,7 +43,7 @@ writeProjectsIn graph outputDir = do
     writeFileProjects (outputDir </> $(mkRelFile "all.js")) graph
     -- For all the project write the graph of the subdir
     for_ (vertices graph) $ \v -> do
-        let sub = fromVertex graph v
+        let sub = fromVertexDirect graph v
             name = projName $ projectFromVertex graph v
         fileName <- parseRelFile $ toString name <> ".js"
         writeFileProjects (outputDir </> fileName) sub

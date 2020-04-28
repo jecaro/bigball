@@ -4,7 +4,8 @@ module Graph
     , Vertex(..)
     , edges
     , fromProjects
-    , fromVertex
+    , fromVertexDirect
+    , fromVertexIndirect
     , projectFromVertex
     , vertices
     )
@@ -47,15 +48,26 @@ tupleToList ((e1, e2):xs) = e1 : e2 : tupleToList xs
 tupleToList _ = []
 
 
-fromVertex :: Graph -> Vertex -> Graph
-fromVertex (Graph graph nodeFromVertex _) vertex = 
+fromVertexDirect :: Graph -> Vertex -> Graph
+fromVertexDirect g@(Graph graph _ _) vertex = 
     let gVertex = veId vertex
         -- Get edges starting from this vertex
         e = filter ((==) gVertex . fst) $ G.edges graph
         -- Get unique vertices for these edges along with the vertex
         v = Set.toList $ Set.fromList $ gVertex : tupleToList e
-        -- And the related nodes
-        n = nodeFromVertex <$> v
+    in fromGVertexList g v
+
+
+fromVertexIndirect :: Graph -> Vertex -> Graph
+fromVertexIndirect g@(Graph graph _ _) vertex = 
+    let gVertex = veId vertex
+        v = G.reachable graph gVertex
+    in fromGVertexList g v
+
+
+fromGVertexList :: Graph -> [G.Vertex] -> Graph
+fromGVertexList (Graph _ nodeFromVertex _) v = 
+    let n = nodeFromVertex <$> v
         -- Get the ids of the nodes
         ids = (\(_, id_, _) -> id_) <$> n
         keepIfInIds = filter (`elem` ids)

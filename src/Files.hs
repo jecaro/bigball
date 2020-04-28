@@ -20,26 +20,35 @@ indexHtml projects = toText . renderText $ index projects
 
 
 index :: Graph -> Html ()
-index graph = 
-    let aProject :: Text -> Html ()
-        aProject name = a_ [ href_ $ "project.html?name=" <> name ] $ toHtml name
-                
-    in 
-        html_ $ do
-            head_ $ 
-                title_ "Projects"
-            body_ $ do
-                aProject "all"
-                table_ $ do
-                    thead_ $
-                        tr_ $ do
-                            th_ "Name"
-                            th_ "Direct dependencies"
-                    tbody_ $
-                        Relude.for_ (projectFromVertex graph <$> vertices graph) 
-                            (\(Project _ name d) -> 
-                                tr_ $ do 
-                                    td_ $ aProject name
-                                    td_ $ show $ length d
-                                ) 
-                                
+index graph =
+    html_ $ do
+        head_ $
+            title_ "Projects"
+        body_ $ do
+            aProject "all"
+            table_ $ do
+                thead_ $
+                    tr_ $ do
+                        th_ "Name"
+                        th_ "Direct dependencies"
+                        th_ "Indirect dependencies"
+                tbody_ $
+                    traverse_ trForVertex (vertices graph)
+
+  where
+    aProject :: Text -> Html ()
+    aProject name = a_ [ href_ $ "project.html?name=" <> name ] $ toHtml name
+
+    trForVertex :: Vertex -> Html ()
+    trForVertex v =
+        let (Project _ name _) = projectFromVertex graph v
+            nbVertices g = length (vertices g) - 1
+            direct = nbVertices $ fromVertexDirect graph v
+            indirect = nbVertices $ fromVertexIndirect graph v
+        in
+            tr_ $ do
+                td_ $ aProject name
+                td_ $ show direct
+                td_ $ show indirect
+
+
