@@ -2,17 +2,16 @@
 
 import Relude 
 
-import qualified Data.Map.Strict as Map
 import Path
 import Path.IO
 import Text.Parsec.Text
 
 import Files
+import Graph
 import JSGraph
 import Options
 import Parser
 import Project
-
 
 main :: IO ()
 main = runCliParser parseInputAndWriteToOuput
@@ -33,23 +32,24 @@ writeFileTextPath file text = do
     writeFileText (toFilePath file) text
 
 
-writeFileProjects :: Path a File -> Projects -> IO ()
-writeFileProjects file projects = 
-    writeFileTextPath file $ nodesAndEdges projects 
+writeFileProjects :: Path a File -> Graph -> IO ()
+writeFileProjects file graph = 
+    writeFileTextPath file $ nodesAndEdges graph
 
 
-writeProjectsIn :: Projects -> Path Abs Dir -> IO()
-writeProjectsIn projects outputDir = do
+writeProjectsIn :: Graph -> Path Abs Dir -> IO()
+writeProjectsIn graph outputDir = do
     -- Write the all graph
-    writeFileProjects (outputDir </> $(mkRelFile "all.js")) projects
+    writeFileProjects (outputDir </> $(mkRelFile "all.js")) graph
     -- For all the project write the graph of the subdir
-    for_ (Map.toList projects) $ \(id_, Project name _) -> do
-        let sub = subProject id_ projects
+    for_ (vertices graph) $ \v -> do
+        let sub = fromVertex graph v
+            name = projName $ projectFromVertex graph v
         fileName <- parseRelFile $ toString name <> ".js"
         writeFileProjects (outputDir </> fileName) sub
     -- Write the html files
     writeFileTextPath (outputDir </> $(mkRelFile "project.html")) projectHtml
-    writeFileTextPath (outputDir </> $(mkRelFile "index.html")) $ indexHtml projects
+    writeFileTextPath (outputDir </> $(mkRelFile "index.html")) $ indexHtml graph
 
 
 parseInputAndWriteToOuput :: Options -> IO ()

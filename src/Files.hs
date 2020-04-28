@@ -5,9 +5,9 @@ module Files (projectHtml, indexHtml)
 import Relude
 
 import Data.FileEmbed
-import qualified Data.Map.Strict as Map
 import Lucid
 
+import Graph
 import Project
 
 
@@ -15,20 +15,14 @@ projectHtml :: Text
 projectHtml = decodeUtf8 $(embedFile "data/project.html")
 
 
-indexHtml :: Projects -> Text
+indexHtml :: Graph -> Text
 indexHtml projects = toText . renderText $ index projects
 
 
-index :: Projects -> Html ()
-index projects = 
+index :: Graph -> Html ()
+index graph = 
     let aProject :: Text -> Html ()
         aProject name = a_ [ href_ $ "project.html?name=" <> name ] $ toHtml name
-        trProject :: Id -> Project -> Html ()
-        trProject identifier project = 
-            tr_ $ do
-                td_ . aProject $ projName project
-                td_ . show . length $ projDependencies project
-                td_ . show . length $ indirect identifier projects
                 
     in 
         html_ $ do
@@ -41,7 +35,11 @@ index projects =
                         tr_ $ do
                             th_ "Name"
                             th_ "Direct dependencies"
-                            th_ "Indirect dependencies"
                     tbody_ $
-                        Relude.for_ (Map.toList projects) $ \(identifier, project) -> 
-                            trProject identifier project
+                        Relude.for_ (projectFromVertex graph <$> vertices graph) 
+                            (\(Project _ name d) -> 
+                                tr_ $ do 
+                                    td_ $ aProject name
+                                    td_ $ show $ length d
+                                ) 
+                                

@@ -2,44 +2,33 @@ module JSGraph (nodesAndEdges)
     where
 
 import Relude 
-import Relude.Extra.Map
 
-import qualified Data.Map.Strict as Map
 import qualified Data.Text as T
 
-import Project
+import Graph
 
 
-nodesAndEdges :: Projects -> Text
-nodesAndEdges projects = nodes projects <> edges projects
+nodesAndEdges :: Graph -> Text
+nodesAndEdges graph =  nodesJs (vertices graph) <> edgesJs (edges graph)
 
 
-node :: Int -> Text -> Text
-node i name = "{id: " <> show i <> ", label: '" <> name <> "'}"
+node :: Vertex -> Text
+node (Vertex i name) = "{id: " <> show i <> ", label: '" <> name <> "'}"
 
 
-nodes :: Projects -> Text
-nodes projects =
-    let names = projName <$> elems projects
-        idAndNames = zip [0::Int ..] names
-        defs = T.intercalate ",\n" $ uncurry node <$> idAndNames
+nodesJs :: [Vertex] -> Text
+nodesJs v = 
+    let defs = T.intercalate ",\n" $ node <$> v
     in "var nodes = [\n" <> defs <> "]\n"
 
 
-edgeFromTo :: Int -> Int -> Text
-edgeFromTo f t = "{from: " <> show f <> ", to: " <> show t <> "}"
+edge :: Edge -> Text
+edge (Vertex f _, Vertex t _) = "{from: " <> show f <> ", to: " <> show t <> "}"
 
 
-edge :: Int -> [Int] -> [Text]
-edge project dependencies =
-    let projectAndDependencies = zip (repeat project) dependencies
-    in uncurry edgeFromTo <$> projectAndDependencies
-
-
-edges :: Projects -> Text
-edges projects =
-    let indexes = Map.toList $ projectsToIndexes projects
-        defs = T.intercalate ",\n" $ concat $ uncurry edge <$> indexes
+edgesJs :: [Edge] -> Text
+edgesJs e = 
+    let defs = T.intercalate ",\n" $ edge <$> e
     in "var edges = [\n" <> defs <> "]\n"
 
 

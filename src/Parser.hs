@@ -6,6 +6,7 @@ import Relude hiding ((<|>), many)
 import Text.Parsec
 import Text.Parsec.Text
 
+import Graph
 import Project
 
 
@@ -31,12 +32,12 @@ projectEnd :: Parser ()
 projectEnd = string "EndProject" *> skipLine
 
 
-projectParser :: Parser (Id, Project)
+projectParser :: Parser Project
 projectParser
     = idAndProject
     <$> projectNameAndId
-    <*> (fromList <$> option [] section) <* projectEnd
-  where idAndProject (name, identifier) ids = (identifier, Project name ids)
+    <*> option [] section <* projectEnd
+  where idAndProject (name, identifier) = Project identifier name
 
 
 sectionStart :: Parser ()
@@ -59,9 +60,9 @@ section :: Parser [Id]
 section = between sectionStart sectionEnd $ many (try sectionLine)
 
 
-parseFile :: Parser Projects
+parseFile :: Parser Graph
 parseFile = do
     _ <- count 4 skipLine
     projectsList <- many (try projectParser)
-    pure $ fromList projectsList
+    pure $ fromProjects projectsList
 
