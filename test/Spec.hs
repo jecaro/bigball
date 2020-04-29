@@ -1,8 +1,19 @@
 import Relude
 
+import Data.Array
+import qualified Data.Graph as G
 import Test.Hspec
 
+import Graph
 import Project
+
+
+oneNodeNoEdge :: G.Graph
+oneNodeNoEdge = array (0, 0) [(0, [])]
+
+
+twoNodesNoEdge :: G.Graph
+twoNodesNoEdge = array (0, 1) [(0, []), (1, [])]
 
 
 project1 :: Project
@@ -25,21 +36,39 @@ project5 :: Project
 project5 = Project (Id "5") "project 5" $ fromList $ Id <$> []
 
 
-projects :: [Project]
-projects = fromList [project1, project2, project3, project4]
+graph :: Graph
+graph = fromProjects [project1, project2, project3, project4, project5] 
 
 
-testProject :: Spec
-testProject = 
-    describe "Project" $
-        it "Test the function indirect" $ do
-            pending
-            --indirect (Id "4") projects `shouldBe` Set.empty 
-            --indirect (Id "5") projects `shouldBe` Set.empty 
-            --indirect (Id "3") projects `shouldBe` Set.singleton (Id "5")
-            --indirect (Id "2") projects `shouldBe` fromList (Id <$> [ "3", "4", "5"]) 
-            --indirect (Id "1") projects `shouldBe` fromList (Id <$> [ "2", "3", "4", "5"]) 
+testGraph :: Spec
+testGraph = do
+    describe "Graph creation" $ do
+        it "Test the function fromProject with one node" $ do
+            grGraph (fromProjects [project1]) `shouldBe` oneNodeNoEdge
+            grGraph (fromProjects [project2]) `shouldBe` oneNodeNoEdge 
+            grGraph (fromProjects [project3]) `shouldBe` oneNodeNoEdge
+            grGraph (fromProjects [project4]) `shouldBe` oneNodeNoEdge
+            grGraph (fromProjects [project5]) `shouldBe` oneNodeNoEdge
+        it "Test the function fromProject with more nodes but no edges" $ do
+            grGraph (fromProjects [project1, project4]) `shouldBe` twoNodesNoEdge
+            grGraph (fromProjects [project1, project5]) `shouldBe` twoNodesNoEdge
+        it "Test the function fromProject with nodes and edges" $
+            grGraph (fromProjects [project1, project2, project3]) `shouldBe` 
+                array (0, 2) [(0, [1, 2]), (1, [2]), (2, [])]
+    describe "Subgraphs" $ do
+        it "Test getting the first level" $  
+            grGraph (fromVertexDirect graph (Vertex 0 "1")) `shouldBe` 
+               array (0, 2) [(0, [1, 2]), (1, [2]), (2, [])] 
+        it "Test getting all the levels" $  
+            grGraph (fromVertexIndirect graph (Vertex 0 "1")) `shouldBe` 
+                array (0, 4) 
+                    [ (0, [1, 2])
+                    , (1, [2, 3])
+                    , (2, [4])
+                    , (3, [])
+                    , (4, [])
+                    ]
 
 
 main :: IO ()
-main = hspec testProject
+main = hspec testGraph
