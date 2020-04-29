@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Files (projectHtml, indexHtml)
+module HtmlFiles (projectHtml, indexHtml)
     where
 
 import Relude
@@ -8,6 +8,7 @@ import Data.FileEmbed
 import Lucid
 
 import Graph
+import Filenames
 import Project
 
 
@@ -25,7 +26,7 @@ index graph =
         head_ $
             title_ "Projects"
         body_ $ do
-            aForGraph "all" "all"
+            aForGraph allGraph allGraph
             table_ $ do
                 thead_ $
                     tr_ $ do
@@ -48,6 +49,6 @@ index graph =
         in
             tr_ $ do
                 td_ $ toHtml name
-                td_ $ aForGraph (name <> "_direct") (show direct)
-                td_ $ aForGraph (name <> "_indirect") (show indirect) 
+                td_ $ aForGraph (directGraph name) (show direct)
+                td_ $ aForGraph (indirectGraph name) (show indirect) 
 
