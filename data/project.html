@@ -1,70 +1,80 @@
+<!DOCTYPE html>
 <html>
+
 <head>
+    <meta charset="utf-8">
+
+    <!-- Bulma -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.2/css/bulma.min.css">
+
+    <!-- vis -->
     <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
-
-    <style type="text/css">
-        #mynetwork {
-            width: 800;
-            height: 800;
-            border: 1px solid lightgray;
-        }
-    </style>
 </head>
+
 <body>
-<div id="mynetwork"></div>
+    <section class="section">
+        <div class="container">
+            <div class="box">
+                <figure class="image is-16by9">
+                    <div id="mynetwork" class="has-ratio"></div>
+                </figure>
+            </div>
+        </div>
+    </section>
 
-<script type="text/javascript">
+    <script type="text/javascript">
 
-    // Parse url
-    let params = new URLSearchParams(location.search);
+        // Parse url
+        let params = new URLSearchParams(location.search);
 
-    // Load the script which contains the nodes
-    var script = document.createElement("script");
-    script.type = "application/javascript";
-    script.src = params.get('name') + '.js';
-    script.onload = createNetwork
-    document.head.appendChild(script);  
-
-    // Create the graph
-    function createNetwork() {
-        // create a network
-        var container = document.getElementById('mynetwork');
-
-        // provide the data in the vis format
-        var data = {
-            nodes: nodes,
-            edges: edges
-        };
-        var options = {
-            edges:{
-                arrows: 'to'
-            },
-            physics: {
-                forceAtlas2Based: {
-                    gravitationalConstant: -26,
-                    centralGravity: 0.005,
-                    springLength: 230,
-                    springConstant: 0.18,
-                    avoidOverlap: 1.5
+        // Load the script which contains the nodes
+        var script = document.createElement("script");
+        script.type = "application/javascript";
+        script.src = params.get('name') + '.js';
+        script.onload = createNetwork
+        document.head.appendChild(script);  
+        
+        // Create the graph
+        function createNetwork() {
+            // create a network
+            var container = document.getElementById('mynetwork');
+        
+            // provide the data in the vis format
+            var data = {
+                nodes: nodes,
+                edges: edges
+            };
+            var options = {
+                edges:{
+                    arrows: 'to'
                 },
-                maxVelocity: 146,
-                solver: 'forceAtlas2Based',
-                timestep: 0.35,
-                stabilization: {
-                    enabled: true,
-                    iterations: 1000,
-                    updateInterval: 25
-                }
-            }   
-        };
-
-        // initialize your network!
-        var network = new vis.Network(container, data, options);
-
-        network.on("stabilizationIterationsDone", function () {
-            network.setOptions( { physics: false } );
-        }); 
-    }
-</script>
+                physics: {
+                    forceAtlas2Based: {
+                        gravitationalConstant: -26,
+                        centralGravity: 0.005,
+                        springLength: 230,
+                        springConstant: 0.18,
+                        avoidOverlap: 1.5
+                    },
+                    maxVelocity: 146,
+                    solver: 'forceAtlas2Based',
+                    timestep: 0.35,
+                    stabilization: {
+                        enabled: true,
+                        iterations: 1000,
+                        updateInterval: 25
+                    }
+                }   
+            };
+        
+            // initialize your network!
+            var network = new vis.Network(container, data, options);
+        
+            network.on("stabilizationIterationsDone", function () {
+                network.setOptions( { physics: false } );
+            }); 
+        }
+    </script>
 </body>
 </html>

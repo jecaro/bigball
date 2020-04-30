@@ -22,19 +22,24 @@ indexHtml projects = toText . renderText $ index projects
 
 index :: Graph -> Html ()
 index graph =
-    html_ $ do
-        head_ $
+    doctypehtml_ $ do
+        head_ $ do
+            meta_ [charset_ "utf-8"]
+            meta_ [name_ "viewport", content_ "width=device-width, initial-scale=1"]
+            link_ [rel_ "stylesheet", href_ "https://cdn.jsdelivr.net/npm/bulma@0.8.2/css/bulma.min.css"]
             title_ "Projects"
-        body_ $ do
-            aForGraph allGraph allGraph
-            table_ $ do
-                thead_ $
-                    tr_ $ do
-                        th_ "Name"
-                        th_ "Direct dependencies"
-                        th_ "Indirect dependencies"
-                tbody_ $
-                    traverse_ trForVertex (vertices graph)
+        body_ $ 
+            section_ [ class_ "section" ] $
+                div_ [ class_ "container" ] $ do
+                    aForGraph allGraph allGraph
+                    table_ [ class_ "table" ] $ do
+                        thead_ $
+                            tr_ $ do
+                                th_ "Name"
+                                th_ "Direct graph"
+                                th_ "Indirect graph"
+                        tbody_ $
+                            traverse_ trForVertex (vertices graph)
 
   where
     aForGraph :: Text -> Text -> Html ()
