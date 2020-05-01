@@ -63,8 +63,7 @@
                         gravitationalConstant: -26,
                         centralGravity: 0.005,
                         springLength: 230,
-                        springConstant: 0.18,
-                        avoidOverlap: 1.5
+                        springConstant: 0.18
                     },
                     maxVelocity: 146,
                     solver: 'forceAtlas2Based',
@@ -74,15 +73,14 @@
                         iterations: 1000,
                         updateInterval: 25
                     }
-                }   
+                },
+                layout: {
+                    improvedLayout: false
+                },
             };
         
             // initialize your network!
             const network = new vis.Network(container, data, options);
-        
-            network.on("stabilizationIterationsDone", function () {
-                network.setOptions( { physics: false } );
-            }); 
         }
     </script>
 </body>
