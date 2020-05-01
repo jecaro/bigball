@@ -57,10 +57,10 @@ testGraph = do
                 array (0, 2) [(0, [1, 2]), (1, [2]), (2, [])]
     describe "Subgraphs" $ do
         it "Test getting the first level" $  
-            grGraph (fromVertexDirect graph (Vertex 0 "1")) `shouldBe` 
+            grGraph (fromVertexLevel1 graph (Vertex 0 "1")) `shouldBe` 
                array (0, 2) [(0, [1, 2]), (1, [2]), (2, [])] 
         it "Test getting all the levels" $  
-            grGraph (fromVertexIndirect graph (Vertex 0 "1")) `shouldBe` 
+            grGraph (fromVertexFull graph (Vertex 0 "1")) `shouldBe` 
                 array (0, 4) 
                     [ (0, [1, 2])
                     , (1, [2, 3])

@@ -44,18 +44,18 @@ writeProjectsIn graph outputDir = do
     filenameAll <- allGraphJs 
     writeFileGraph (outputDir </> filenameAll) graph
 
-    -- For all the project write the direct and indirect graphe
+    -- For all the project write the first level and the full graph
     for_ (vertices graph) $ \v -> do
-        let direct = fromVertexDirect graph v
+        let level1 = fromVertexLevel1 graph v
             name = projName $ projectFromVertex graph v
 
-        filenameDirect <- directGraphJs name
-        writeFileGraph (outputDir </> filenameDirect) direct
+        filenameLevel1 <- level1GraphJs name
+        writeFileGraph (outputDir </> filenameLevel1) level1
 
-        let indirect = fromVertexIndirect graph v
+        let full = fromVertexFull graph v
 
-        filenameIndirect <- indirectGraphJs name
-        writeFileGraph (outputDir </> filenameIndirect) indirect
+        filenameFull <- fullGraphJs name
+        writeFileGraph (outputDir </> filenameFull) full
 
     -- Write the html files
     writeFileTextPath (outputDir </> $(mkRelFile "project.html")) projectHtml

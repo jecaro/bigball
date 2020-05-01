@@ -23,17 +23,17 @@ allGraphJs :: MonadThrow m => m (Path Rel File)
 allGraphJs = stringToJs allGraph
 
 
-directGraph :: Text -> Text
-directGraph name = name <> "_direct"
+level1Graph :: Text -> Text
+level1Graph name = name <> "_level1"
 
 
-directGraphJs :: MonadThrow m => Text -> m (Path Rel File)
-directGraphJs name = stringToJs $ directGraph name 
+level1GraphJs :: MonadThrow m => Text -> m (Path Rel File)
+level1GraphJs name = stringToJs $ level1Graph name 
 
 
-indirectGraph :: Text -> Text
-indirectGraph name = name <> "_indirect"
+fullGraph :: Text -> Text
+fullGraph name = name <> "_full"
 
 
-indirectGraphJs :: MonadThrow m => Text -> m (Path Rel File)
-indirectGraphJs name = stringToJs $ indirectGraph name
+fullGraphJs :: MonadThrow m => Text -> m (Path Rel File)
+fullGraphJs name = stringToJs $ fullGraph name

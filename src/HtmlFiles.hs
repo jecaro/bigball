@@ -36,8 +36,8 @@ index graph =
                         thead_ $
                             tr_ $ do
                                 th_ "Name"
-                                th_ "Direct graph"
-                                th_ "Indirect graph"
+                                th_ "First level"
+                                th_ "Full graph"
                         tbody_ $
                             traverse_ trForVertex (vertices graph)
 
@@ -49,11 +49,11 @@ index graph =
     trForVertex v =
         let (Project _ name _) = projectFromVertex graph v
             nbVertices g = length (vertices g) - 1
-            direct = nbVertices $ fromVertexDirect graph v
-            indirect = nbVertices $ fromVertexIndirect graph v
+            level1 = nbVertices $ fromVertexLevel1 graph v
+            full = nbVertices $ fromVertexFull graph v
         in
             tr_ $ do
                 td_ $ toHtml name
-                td_ $ aForGraph (directGraph name) (show direct)
-                td_ $ aForGraph (indirectGraph name) (show indirect) 
+                td_ $ aForGraph (level1Graph name) (show level1)
+                td_ $ aForGraph (fullGraph name) (show full) 
 

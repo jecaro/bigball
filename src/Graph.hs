@@ -4,8 +4,8 @@ module Graph
     , Vertex(..)
     , edges
     , fromProjects
-    , fromVertexDirect
-    , fromVertexIndirect
+    , fromVertexLevel1
+    , fromVertexFull
     , projectFromVertex
     , vertices
     )
@@ -48,8 +48,8 @@ tupleToList ((e1, e2):xs) = e1 : e2 : tupleToList xs
 tupleToList _ = []
 
 
-fromVertexDirect :: Graph -> Vertex -> Graph
-fromVertexDirect g@(Graph graph _ _) vertex = 
+fromVertexLevel1 :: Graph -> Vertex -> Graph
+fromVertexLevel1 g@(Graph graph _ _) vertex = 
     let gVertex = veId vertex
         -- Get edges starting from this vertex
         e = filter ((==) gVertex . fst) $ G.edges graph
@@ -58,8 +58,8 @@ fromVertexDirect g@(Graph graph _ _) vertex =
     in fromGVertexList g v
 
 
-fromVertexIndirect :: Graph -> Vertex -> Graph
-fromVertexIndirect g@(Graph graph _ _) vertex = 
+fromVertexFull :: Graph -> Vertex -> Graph
+fromVertexFull g@(Graph graph _ _) vertex = 
     let gVertex = veId vertex
         v = G.reachable graph gVertex
     in fromGVertexList g v
