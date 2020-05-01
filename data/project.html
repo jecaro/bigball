@@ -15,10 +15,15 @@
 <body>
     <section class="section">
         <div class="container">
+            <h1 class="title" id="name">Project name<h1>
             <div class="box">
                 <figure class="image is-16by9">
-                    <div id="mynetwork" class="has-ratio"></div>
+                    <div id="network" class="has-ratio"></div>
                 </figure>
+            </div>
+            <div class="content">
+                <h2 class="title">Dependencies</h2>
+                <ul id="dependencies"></ul>
             </div>
         </div>
     </section>
@@ -30,24 +35,20 @@
         const projName = params.get('name');
 
         // Set a title
-        const container = document.querySelector('div'); 
-
-        const h1 = document.createElement('h1');
-        h1.setAttribute('class', 'title');
-        h1.textContent = projName; 
-        container.prepend(h1);
+        const name = document.getElementById('name');
+        name.textContent = projName; 
 
         // Load the script which contains the nodes
         const script = document.createElement("script");
         script.type = "application/javascript";
         script.src = projName + '.js';
-        script.onload = createNetwork
+        script.onload = graphLoaded
         document.head.appendChild(script);  
         
         // Create the graph
-        function createNetwork() {
+        function graphLoaded() {
             // create a network
-            const container = document.getElementById('mynetwork');
+            const networkDiv = document.getElementById('network');
         
             // provide the data in the vis format
             const data = {
@@ -79,8 +80,17 @@
                 },
             };
         
-            // initialize your network!
-            const network = new vis.Network(container, data, options);
+            // Initialize the network
+            const network = new vis.Network(networkDiv, data, options);
+
+            // Update the dependency list
+            const dependencies = document.getElementById('dependencies');
+
+            nodes.map( node => {
+                const li = document.createElement('li');
+                li.textContent = node.label; 
+                return li;
+            } ).forEach( elt => dependencies.appendChild(elt) );
         }
     </script>
 </body>
