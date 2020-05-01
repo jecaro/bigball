@@ -27,11 +27,20 @@
 
         // Parse url
         const params = new URLSearchParams(location.search);
+        const projName = params.get('name');
+
+        // Set a title
+        const container = document.querySelector('div'); 
+
+        const h1 = document.createElement('h1');
+        h1.setAttribute('class', 'title');
+        h1.textContent = projName; 
+        container.prepend(h1);
 
         // Load the script which contains the nodes
         const script = document.createElement("script");
         script.type = "application/javascript";
-        script.src = params.get('name') + '.js';
+        script.src = projName + '.js';
         script.onload = createNetwork
         document.head.appendChild(script);  
         
