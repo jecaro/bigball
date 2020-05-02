@@ -6,6 +6,7 @@ import Relude
 
 import Data.FileEmbed
 import Lucid
+import Path
 
 import Graph
 import Filenames
@@ -31,7 +32,7 @@ index graph =
         body_ $ 
             section_ [ class_ "section" ] $
                 div_ [ class_ "container" ] $ do
-                    aForGraph allGraph allGraph
+                    whenJust allGraphJs (\f -> aForGraph allGraph f allGraph)
                     table_ [ class_ "table" ] $ do
                         thead_ $
                             tr_ $ do
@@ -42,8 +43,10 @@ index graph =
                             traverse_ trForVertex (vertices graph)
 
   where
-    aForGraph :: Text -> Text -> Html ()
-    aForGraph name text = a_ [ href_ $ "project.html?name=" <> name ] $ toHtml text
+    aForGraph :: Text -> Path Rel File -> Text -> Html ()
+    aForGraph name dataFile text = a_ [ href_ url ] $ toHtml text
+      where url = "project.html?projName=" <> name <> "&dataFile=" 
+                <> toText (toFilePath dataFile)
 
     trForVertex :: Vertex -> Html ()
     trForVertex v =
@@ -54,6 +57,8 @@ index graph =
         in
             tr_ $ do
                 td_ $ toHtml name
-                td_ $ aForGraph (level1Graph name) (show level1)
-                td_ $ aForGraph (fullGraph name) (show full) 
+                td_ $ whenJust (level1GraphJs name) 
+                    (\f -> aForGraph name f (show level1))
+                td_ $ whenJust (fullGraphJs name) 
+                    (\f -> aForGraph name f (show full))
 

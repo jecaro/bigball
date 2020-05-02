@@ -32,16 +32,18 @@
 
         // Parse url
         const params = new URLSearchParams(location.search);
-        const projName = params.get('name');
+        const projName = params.get('projName');
+        const dataFile = params.get('dataFile');
 
-        // Set a title
+        // Set the title
+        document.title = projName;
         const name = document.getElementById('name');
         name.textContent = projName; 
 
         // Load the script which contains the nodes
         const script = document.createElement("script");
         script.type = "application/javascript";
-        script.src = projName + '.js';
+        script.src = dataFile;
         script.onload = graphLoaded
         document.head.appendChild(script);  
         
