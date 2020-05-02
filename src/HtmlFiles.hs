@@ -40,9 +40,12 @@ index graph =
                                 th_ "First level"
                                 th_ "Full graph"
                         tbody_ $
-                            traverse_ trForVertex (vertices graph)
+                            traverse_ trForVertex $ sortBy compareNames (vertices graph)
 
   where
+    compareNames :: Vertex -> Vertex -> Ordering
+    compareNames Vertex{veName = n1} Vertex{veName = n2} = compare n1 n2
+
     aForGraph :: Text -> Path Rel File -> Text -> Html ()
     aForGraph name dataFile text = a_ [ href_ url ] $ toHtml text
       where url = "project.html?projName=" <> name <> "&dataFile=" 

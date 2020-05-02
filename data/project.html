@@ -88,11 +88,13 @@
             // Update the dependency list
             const dependencies = document.getElementById('dependencies');
 
-            nodes.map( node => {
-                const li = document.createElement('li');
-                li.textContent = node.label; 
-                return li;
-            } ).forEach( elt => dependencies.appendChild(elt) );
+            nodes.sort( (n1, n2) => n1.label.localeCompare(n2.label))
+                .map( node => {
+                    const li = document.createElement('li');
+                    li.textContent = node.label; 
+                    return li;
+                } )
+                .forEach( elt => dependencies.appendChild(elt) );
         }
     </script>
 </body>
