@@ -4,10 +4,26 @@ module Parser (parseFile)
 import Relude hiding ((<|>), many)
 
 import Text.Parsec
-import Text.Parsec.Text
+    ( alphaNum
+    , anyChar
+    , between
+    , char
+    , count
+    , endOfLine
+    , many
+    , many1
+    , manyTill
+    , noneOf
+    , option
+    , spaces
+    , string
+    , try
+    , (<|>)
+    )
+import Text.Parsec.Text (Parser)
 
-import Graph
-import Project
+import Graph (Graph, fromProjects)
+import Project (Id(..), Project(..))
 
 
 skipTo :: Parser a -> Parser ()

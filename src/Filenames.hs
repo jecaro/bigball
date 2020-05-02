@@ -1,10 +1,10 @@
-module Filenames
+module Filenames (allGraph, allGraphJs, level1GraphJs, fullGraphJs)
     where
 
 import Relude
 
-import Control.Monad.Catch
-import Path
+import Control.Monad.Catch (MonadThrow)
+import Path (File, Path, Rel, addExtension, parseRelFile)
 
 
 allGraph :: Text
@@ -28,7 +28,7 @@ level1Graph name = name <> "_level1"
 
 
 level1GraphJs :: MonadThrow m => Text -> m (Path Rel File)
-level1GraphJs name = stringToJs $ level1Graph name 
+level1GraphJs name = stringToJs $ level1Graph name
 
 
 fullGraph :: Text -> Text

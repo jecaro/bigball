@@ -1,11 +1,11 @@
 module JSGraph (nodesAndEdges, reverseJs)
     where
 
-import Relude 
+import Relude
 
 import qualified Data.Text as T
 
-import Graph
+import Graph (Edge, Graph, Vertex(..), edges, vertices)
 
 
 nodesAndEdges :: Graph -> Text
@@ -17,7 +17,7 @@ node (Vertex i name) = "{id: " <> show i <> ", label: '" <> name <> "'}"
 
 
 nodesJs :: [Vertex] -> Text
-nodesJs v = 
+nodesJs v =
     let defs = T.intercalate ",\n" $ node <$> v
     in "const nodes = [\n" <> defs <> "]\n"
 
@@ -36,7 +36,7 @@ edge (Vertex f _, Vertex t _) = "{from: " <> show f <> ", to: " <> show t <> "}"
 
 
 edgesJs :: [Edge] -> Text
-edgesJs e = 
+edgesJs e =
     let defs = T.intercalate ",\n" $ edge <$> e
     in "const edges = [\n" <> defs <> "]\n"
 

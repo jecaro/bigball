@@ -1,7 +1,7 @@
 module Project (Id(..), Project(..))
     where
 
-import Relude 
+import Relude
 
 
 newtype Id = Id { unId :: Text }

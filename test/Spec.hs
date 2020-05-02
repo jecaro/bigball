@@ -1,11 +1,11 @@
 import Relude
 
-import Data.Array
+import Data.Array (array)
 import qualified Data.Graph as G
-import Test.Hspec
+import Test.Hspec (Spec, describe, hspec, it, shouldBe)
 
-import Graph
-import Project
+import Graph (Graph(..), Vertex(..), fromProjects, fromVertexFull, fromVertexLevel1)
+import Project (Id(..), Project(..))
 
 
 oneNodeNoEdge :: G.Graph
@@ -37,7 +37,7 @@ project5 = Project (Id "5") "project 5" $ fromList $ Id <$> []
 
 
 graph :: Graph
-graph = fromProjects [project1, project2, project3, project4, project5] 
+graph = fromProjects [project1, project2, project3, project4, project5]
 
 
 testGraph :: Spec
@@ -45,7 +45,7 @@ testGraph = do
     describe "Graph creation" $ do
         it "Test the function fromProject with one node" $ do
             grGraph (fromProjects [project1]) `shouldBe` oneNodeNoEdge
-            grGraph (fromProjects [project2]) `shouldBe` oneNodeNoEdge 
+            grGraph (fromProjects [project2]) `shouldBe` oneNodeNoEdge
             grGraph (fromProjects [project3]) `shouldBe` oneNodeNoEdge
             grGraph (fromProjects [project4]) `shouldBe` oneNodeNoEdge
             grGraph (fromProjects [project5]) `shouldBe` oneNodeNoEdge
@@ -53,15 +53,15 @@ testGraph = do
             grGraph (fromProjects [project1, project4]) `shouldBe` twoNodesNoEdge
             grGraph (fromProjects [project1, project5]) `shouldBe` twoNodesNoEdge
         it "Test the function fromProject with nodes and edges" $
-            grGraph (fromProjects [project1, project2, project3]) `shouldBe` 
+            grGraph (fromProjects [project1, project2, project3]) `shouldBe`
                 array (0, 2) [(0, [1, 2]), (1, [2]), (2, [])]
     describe "Subgraphs" $ do
-        it "Test getting the first level" $  
-            grGraph (fromVertexLevel1 graph (Vertex 0 "1")) `shouldBe` 
-               array (0, 2) [(0, [1, 2]), (1, [2]), (2, [])] 
-        it "Test getting all the levels" $  
-            grGraph (fromVertexFull graph (Vertex 0 "1")) `shouldBe` 
-                array (0, 4) 
+        it "Test getting the first level" $
+            grGraph (fromVertexLevel1 graph (Vertex 0 "1")) `shouldBe`
+               array (0, 2) [(0, [1, 2]), (1, [2]), (2, [])]
+        it "Test getting all the levels" $
+            grGraph (fromVertexFull graph (Vertex 0 "1")) `shouldBe`
+                array (0, 4)
                     [ (0, [1, 2])
                     , (1, [2, 3])
                     , (2, [4])

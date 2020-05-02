@@ -1,4 +1,4 @@
-module Graph 
+module Graph
     ( Graph(..)
     , Edge
     , Vertex(..)
@@ -18,7 +18,7 @@ import Relude
 import qualified Data.Graph as G
 import qualified Data.Set as Set
 
-import Project
+import Project (Project(..), Id(..))
 
 
 data Graph = Graph
@@ -42,7 +42,7 @@ fromProjects :: [Project] -> Graph
 fromProjects projects = Graph graph nodeFromVertex vertexFromKey
   where
     projectToTuple (Project id_ name deps) = (name, id_, deps)
-    (graph, nodeFromVertex, vertexFromKey) = G.graphFromEdges $ projectToTuple <$> projects 
+    (graph, nodeFromVertex, vertexFromKey) = G.graphFromEdges $ projectToTuple <$> projects
 
 
 tupleToList :: [(a, a)] -> [a]
@@ -51,7 +51,7 @@ tupleToList _ = []
 
 
 fromVertexLevel1 :: Graph -> Vertex -> Graph
-fromVertexLevel1 g@(Graph graph _ _) vertex = 
+fromVertexLevel1 g@(Graph graph _ _) vertex =
     let gVertex = veId vertex
         -- Get edges starting from this vertex
         e = filter ((==) gVertex . fst) $ G.edges graph
@@ -61,20 +61,20 @@ fromVertexLevel1 g@(Graph graph _ _) vertex =
 
 
 fromVertexFull :: Graph -> Vertex -> Graph
-fromVertexFull g@(Graph graph _ _) vertex = 
+fromVertexFull g@(Graph graph _ _) vertex =
     let gVertex = veId vertex
         v = G.reachable graph gVertex
     in fromGVertexList g v
 
 
 fromGVertexList :: Graph -> [G.Vertex] -> Graph
-fromGVertexList (Graph _ nodeFromVertex _) v = 
+fromGVertexList (Graph _ nodeFromVertex _) v =
     let n = nodeFromVertex <$> v
         -- Get the ids of the nodes
         ids = (\(_, id_, _) -> id_) <$> n
         keepIfInIds = filter (`elem` ids)
         -- Filters the dependencies to keep only these ids
-        projects = 
+        projects =
             (\(name, id_, deps) -> Project id_ name (keepIfInIds deps)) <$> n
     in fromProjects projects
 
@@ -85,19 +85,19 @@ gVertexToVertex nodeFromVertex vertex = Vertex vertex name
 
 
 vertices :: Graph -> [Vertex]
-vertices (Graph graph nodeFromVertex _) = 
+vertices (Graph graph nodeFromVertex _) =
     gVertexToVertex nodeFromVertex <$> G.vertices graph
 
 
 projectFromVertex :: Graph -> Vertex -> Project
-projectFromVertex (Graph _ nodeFromVertex _) v = 
+projectFromVertex (Graph _ nodeFromVertex _) v =
     let gv = veId v
         (name, id_, ids) = nodeFromVertex gv
     in Project id_ name ids
 
 
 gEdgeToEdge :: (G.Vertex -> (Text, Id, [Id])) -> G.Edge -> Edge
-gEdgeToEdge nodeFromVertex (e1, e2) = 
+gEdgeToEdge nodeFromVertex (e1, e2) =
     let convertVertex = gVertexToVertex nodeFromVertex
     in (convertVertex e1, convertVertex e2)
 
@@ -107,14 +107,14 @@ edges (Graph graph nodeFromVertex _) = gEdgeToEdge nodeFromVertex <$> G.edges gr
 
 
 reverseDependenciesLevel1 :: Graph -> Vertex -> [Vertex]
-reverseDependenciesLevel1 g@(Graph graph _ _) v = 
+reverseDependenciesLevel1 g@(Graph graph _ _) v =
     let reverseGraph = g{grGraph = G.transposeG graph}
         level1 = fromVertexLevel1 reverseGraph v
     in filter ((/=) (veName v) . veName) $ vertices level1
 
 
 reverseDependenciesFull :: Graph -> Vertex -> [Vertex]
-reverseDependenciesFull g@(Graph graph _ _) v = 
+reverseDependenciesFull g@(Graph graph _ _) v =
     let reverseGraph = g{grGraph = G.transposeG graph}
         full = fromVertexFull reverseGraph v
     in filter ((/=) (veName v) . veName) $ vertices full

@@ -4,13 +4,20 @@ module HtmlFiles (projectHtml, indexHtml)
 
 import Relude
 
-import Data.FileEmbed
+import Data.FileEmbed (embedFile)
 import Lucid
-import Path
+import Path (File, Path, Rel, toFilePath)
 
 import Graph
-import Filenames
-import Project
+    ( Graph
+    , Vertex(..)
+    , fromVertexFull
+    , fromVertexLevel1
+    , projectFromVertex
+    , vertices
+    )
+import Filenames (allGraph, allGraphJs, fullGraphJs, level1GraphJs)
+import Project (Project(..))
 
 
 projectHtml :: Text
@@ -29,7 +36,7 @@ index graph =
             meta_ [name_ "viewport", content_ "width=device-width, initial-scale=1"]
             link_ [rel_ "stylesheet", href_ "https://cdn.jsdelivr.net/npm/bulma@0.8.2/css/bulma.min.css"]
             title_ "Projects"
-        body_ $ 
+        body_ $
             section_ [ class_ "section" ] $
                 div_ [ class_ "container" ] $ do
                     whenJust allGraphJs (\f -> aForGraph allGraph f allGraph)
@@ -48,7 +55,7 @@ index graph =
 
     aForGraph :: Text -> Path Rel File -> Text -> Html ()
     aForGraph name dataFile text = a_ [ href_ url ] $ toHtml text
-      where url = "project.html?projName=" <> name <> "&dataFile=" 
+      where url = "project.html?projName=" <> name <> "&dataFile="
                 <> toText (toFilePath dataFile)
 
     trForVertex :: Vertex -> Html ()
@@ -60,8 +67,8 @@ index graph =
         in
             tr_ $ do
                 td_ $ toHtml name
-                td_ $ whenJust (level1GraphJs name) 
+                td_ $ whenJust (level1GraphJs name)
                     (\f -> aForGraph name f (show level1))
-                td_ $ whenJust (fullGraphJs name) 
+                td_ $ whenJust (fullGraphJs name)
                     (\f -> aForGraph name f (show full))
 

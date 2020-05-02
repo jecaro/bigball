@@ -1,18 +1,38 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-import Relude 
+import Relude
 
 import Path
-import Path.IO
-import Text.Parsec.Text
+    ( Abs
+    , Dir
+    , File
+    , Path
+    , mkRelFile
+    , parent
+    , parseAbsDir
+    , parseRelDir
+    , toFilePath
+    , (</>)
+    )
+import Path.IO (ensureDir, getCurrentDir)
+import Text.Parsec.Text (parseFromFile)
 
-import Filenames
+import Filenames (allGraphJs, fullGraphJs, level1GraphJs)
 import Graph
-import HtmlFiles
-import JSGraph
-import Options
-import Parser
-import Project
+    ( Graph
+    , Vertex
+    , fromVertexFull
+    , fromVertexLevel1
+    , projectFromVertex
+    , reverseDependenciesFull
+    , reverseDependenciesLevel1
+    , vertices
+    )
+import HtmlFiles (indexHtml, projectHtml)
+import JSGraph (nodesAndEdges, reverseJs)
+import Options (Options(..), runCliParser)
+import Parser (parseFile)
+import Project (Project(..))
 
 
 main :: IO ()
@@ -35,19 +55,19 @@ writeFileTextPath file text = do
 
 
 writeFileGraph :: Path a File -> Graph -> IO ()
-writeFileGraph file graph = 
+writeFileGraph file graph =
     writeFileTextPath file $ nodesAndEdges graph
 
 
 writeFileGraphAndReverseDeps :: Path a File -> Graph -> [Vertex] -> IO ()
-writeFileGraphAndReverseDeps file graph revDeps = 
+writeFileGraphAndReverseDeps file graph revDeps =
     writeFileTextPath file $ nodesAndEdges graph <> reverseJs revDeps
 
 
 writeProjectsIn :: Graph -> Path Abs Dir -> IO()
 writeProjectsIn graph outputDir = do
     -- Write the all graph
-    filenameAll <- allGraphJs 
+    filenameAll <- allGraphJs
     writeFileGraph (outputDir </> filenameAll) graph
 
     -- For all the project write the first level and the full graph
@@ -77,5 +97,5 @@ parseInputAndWriteToOuput (Options inputFileStr outputDirStr) = do
     case res of
         Left err -> putTextLn $ show err
         Right projects -> do
-            outputDir <- stringToPath outputDirStr 
+            outputDir <- stringToPath outputDirStr
             writeProjectsIn projects outputDir
