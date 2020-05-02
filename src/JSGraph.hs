@@ -1,4 +1,4 @@
-module JSGraph (nodesAndEdges)
+module JSGraph (nodesAndEdges, reverseJs)
     where
 
 import Relude 
@@ -19,7 +19,16 @@ node (Vertex i name) = "{id: " <> show i <> ", label: '" <> name <> "'}"
 nodesJs :: [Vertex] -> Text
 nodesJs v = 
     let defs = T.intercalate ",\n" $ node <$> v
-    in "var nodes = [\n" <> defs <> "]\n"
+    in "const nodes = [\n" <> defs <> "]\n"
+
+
+var :: Vertex -> Text
+var (Vertex _ name) = "'" <> name <> "'"
+
+reverseJs :: [Vertex] -> Text
+reverseJs v =
+    let defs = T.intercalate ",\n" $ var <$> v
+    in "const reverse = [\n" <> defs <> "]\n"
 
 
 edge :: Edge -> Text
@@ -29,6 +38,6 @@ edge (Vertex f _, Vertex t _) = "{from: " <> show f <> ", to: " <> show t <> "}"
 edgesJs :: [Edge] -> Text
 edgesJs e = 
     let defs = T.intercalate ",\n" $ edge <$> e
-    in "var edges = [\n" <> defs <> "]\n"
+    in "const edges = [\n" <> defs <> "]\n"
 
 

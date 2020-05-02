@@ -25,6 +25,10 @@
                 <h2 class="title">Dependencies</h2>
                 <ul id="dependencies"></ul>
             </div>
+            <div class="content">
+                <h2 class="title">Reverse dependencies</h2>
+                <ul id="reverse"></ul>
+            </div>
         </div>
     </section>
 
@@ -95,6 +99,18 @@
                     return li;
                 } )
                 .forEach( elt => dependencies.appendChild(elt) );
+
+            // Reverse dependency list
+            const reverseDiv = document.getElementById('reverse');
+
+            reverse.sort( (r1, r2) => r1.localeCompare(r2))
+                .map( r => {
+                    const li = document.createElement('li');
+                    li.textContent = r;
+                    return li;
+                } )
+                .forEach( elt => reverseDiv.appendChild(elt) );
+
         }
     </script>
 </body>

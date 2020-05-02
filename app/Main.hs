@@ -14,6 +14,7 @@ import Options
 import Parser
 import Project
 
+
 main :: IO ()
 main = runCliParser parseInputAndWriteToOuput
 
@@ -38,6 +39,11 @@ writeFileGraph file graph =
     writeFileTextPath file $ nodesAndEdges graph
 
 
+writeFileGraphAndReverseDeps :: Path a File -> Graph -> [Vertex] -> IO ()
+writeFileGraphAndReverseDeps file graph revDeps = 
+    writeFileTextPath file $ nodesAndEdges graph <> reverseJs revDeps
+
+
 writeProjectsIn :: Graph -> Path Abs Dir -> IO()
 writeProjectsIn graph outputDir = do
     -- Write the all graph
@@ -46,16 +52,18 @@ writeProjectsIn graph outputDir = do
 
     -- For all the project write the first level and the full graph
     for_ (vertices graph) $ \v -> do
-        let level1 = fromVertexLevel1 graph v
-            name = projName $ projectFromVertex graph v
+        let name = projName $ projectFromVertex graph v
+            level1 = fromVertexLevel1 graph v
+            revDepLevel1 = reverseDependenciesLevel1 graph v
 
         filenameLevel1 <- level1GraphJs name
-        writeFileGraph (outputDir </> filenameLevel1) level1
+        writeFileGraphAndReverseDeps (outputDir </> filenameLevel1) level1 revDepLevel1
 
         let full = fromVertexFull graph v
+            revDepFull = reverseDependenciesFull graph v
 
         filenameFull <- fullGraphJs name
-        writeFileGraph (outputDir </> filenameFull) full
+        writeFileGraphAndReverseDeps (outputDir </> filenameFull) full revDepFull
 
     -- Write the html files
     writeFileTextPath (outputDir </> $(mkRelFile "project.html")) projectHtml

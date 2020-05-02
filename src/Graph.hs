@@ -4,9 +4,11 @@ module Graph
     , Vertex(..)
     , edges
     , fromProjects
-    , fromVertexLevel1
     , fromVertexFull
+    , fromVertexLevel1
     , projectFromVertex
+    , reverseDependenciesFull
+    , reverseDependenciesLevel1
     , vertices
     )
     where
@@ -102,3 +104,18 @@ gEdgeToEdge nodeFromVertex (e1, e2) =
 
 edges :: Graph -> [Edge]
 edges (Graph graph nodeFromVertex _) = gEdgeToEdge nodeFromVertex <$> G.edges graph
+
+
+reverseDependenciesLevel1 :: Graph -> Vertex -> [Vertex]
+reverseDependenciesLevel1 g@(Graph graph _ _) v = 
+    let reverseGraph = g{grGraph = G.transposeG graph}
+        level1 = fromVertexLevel1 reverseGraph v
+    in filter ((/=) (veName v) . veName) $ vertices level1
+
+
+reverseDependenciesFull :: Graph -> Vertex -> [Vertex]
+reverseDependenciesFull g@(Graph graph _ _) v = 
+    let reverseGraph = g{grGraph = G.transposeG graph}
+        full = fromVertexFull reverseGraph v
+    in filter ((/=) (veName v) . veName) $ vertices full
+
