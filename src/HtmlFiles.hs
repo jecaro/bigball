@@ -1,3 +1,4 @@
+-- | The HTML files to be written in 'Text'
 {-# LANGUAGE TemplateHaskell #-}
 module HtmlFiles (projectHtml, indexHtml)
     where
@@ -19,15 +20,17 @@ import Graph
 import Filenames (allGraph, allGraphJs, fullGraphJs, level1GraphJs)
 import Project (Project(..))
 
-
+-- | The project file
 projectHtml :: Text
 projectHtml = decodeUtf8 $(embedFile "data/project.html")
 
 
+-- | The index file
 indexHtml :: Graph -> Text
 indexHtml projects = toText . renderText $ index projects
 
 
+-- | The index file in HTML form
 index :: Graph -> Html ()
 index graph =
     doctypehtml_ $ do

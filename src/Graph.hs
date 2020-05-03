@@ -1,3 +1,4 @@
+-- | Main structure to store the graph of dependencies of a projet
 module Graph
     ( Graph(..)
     , Edge
@@ -21,6 +22,7 @@ import qualified Data.Set as Set
 import Project (Project(..), Id(..))
 
 
+-- | Structure to store the graph, reflect the output of 'G.graphFromEdges'
 data Graph = Graph
     { grGraph :: G.Graph
     , grNodeFromVertex :: G.Vertex -> (Text, Id, [Id])
@@ -28,16 +30,19 @@ data Graph = Graph
     }
 
 
+-- | Exposed 'Vertex' type
 data Vertex = Vertex
-    { veId :: G.Vertex -- Int
-    , veName :: Text
+    { veId :: G.Vertex -- ^ The identifier in 'G.Graph'
+    , veName :: Text   -- ^ The name of the project
     }
     deriving (Eq, Ord, Show)
 
 
+-- | Exposed 'Edge' type
 type Edge = (Vertex, Vertex)
 
 
+-- | Create a 'Graph' from a list of 'Project'
 fromProjects :: [Project] -> Graph
 fromProjects projects = Graph graph nodeFromVertex vertexFromKey
   where
@@ -45,11 +50,14 @@ fromProjects projects = Graph graph nodeFromVertex vertexFromKey
     (graph, nodeFromVertex, vertexFromKey) = G.graphFromEdges $ projectToTuple <$> projects
 
 
+-- | Flatten a list of 2-tuples
 tupleToList :: [(a, a)] -> [a]
 tupleToList ((e1, e2):xs) = e1 : e2 : tupleToList xs
 tupleToList _ = []
 
 
+-- | Given a 'Vertex' and a 'Graph' returns the graph composed by the vertex
+-- and all its direct descendants
 fromVertexLevel1 :: Graph -> Vertex -> Graph
 fromVertexLevel1 g@(Graph graph _ _) vertex =
     let gVertex = veId vertex
@@ -60,6 +68,8 @@ fromVertexLevel1 g@(Graph graph _ _) vertex =
     in fromGVertexList g v
 
 
+-- | Given a 'Vertex' and a 'Graph' returns the graph composed by the vertex
+-- and all its descendants
 fromVertexFull :: Graph -> Vertex -> Graph
 fromVertexFull g@(Graph graph _ _) vertex =
     let gVertex = veId vertex
@@ -67,6 +77,7 @@ fromVertexFull g@(Graph graph _ _) vertex =
     in fromGVertexList g v
 
 
+-- | Convert a list of 'G.Vertex' to a Graph
 fromGVertexList :: Graph -> [G.Vertex] -> Graph
 fromGVertexList (Graph _ nodeFromVertex _) v =
     let n = nodeFromVertex <$> v
@@ -79,16 +90,19 @@ fromGVertexList (Graph _ nodeFromVertex _) v =
     in fromProjects projects
 
 
+-- | Convert a 'G.Vertex' to a 'Vertex'
 gVertexToVertex :: (G.Vertex -> (Text, Id, [Id])) -> G.Vertex -> Vertex
 gVertexToVertex nodeFromVertex vertex = Vertex vertex name
     where (name, _, _) = nodeFromVertex vertex
 
 
+-- | Returns the vertices of a 'Graph'
 vertices :: Graph -> [Vertex]
 vertices (Graph graph nodeFromVertex _) =
     gVertexToVertex nodeFromVertex <$> G.vertices graph
 
 
+-- | Construct a 'Project' from a 'Vertex'
 projectFromVertex :: Graph -> Vertex -> Project
 projectFromVertex (Graph _ nodeFromVertex _) v =
     let gv = veId v
@@ -96,16 +110,19 @@ projectFromVertex (Graph _ nodeFromVertex _) v =
     in Project id_ name ids
 
 
+-- | Convert a 'G.Edge' to an 'Edge'
 gEdgeToEdge :: (G.Vertex -> (Text, Id, [Id])) -> G.Edge -> Edge
 gEdgeToEdge nodeFromVertex (e1, e2) =
     let convertVertex = gVertexToVertex nodeFromVertex
     in (convertVertex e1, convertVertex e2)
 
 
+-- | Returns the edges of a 'Graph'
 edges :: Graph -> [Edge]
 edges (Graph graph nodeFromVertex _) = gEdgeToEdge nodeFromVertex <$> G.edges graph
 
 
+-- | Get the vertices with a direct dependency of a 'Vertex'
 reverseDependenciesLevel1 :: Graph -> Vertex -> [Vertex]
 reverseDependenciesLevel1 g@(Graph graph _ _) v =
     let reverseGraph = g{grGraph = G.transposeG graph}
@@ -113,6 +130,7 @@ reverseDependenciesLevel1 g@(Graph graph _ _) v =
     in filter ((/=) (veName v) . veName) $ vertices level1
 
 
+-- | Get the vertices with a dependency of a 'Vertex'
 reverseDependenciesFull :: Graph -> Vertex -> [Vertex]
 reverseDependenciesFull g@(Graph graph _ _) v =
     let reverseGraph = g{grGraph = G.transposeG graph}

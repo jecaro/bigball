@@ -1,3 +1,4 @@
+-- | The main module
 {-# LANGUAGE TemplateHaskell #-}
 
 import Relude
@@ -29,17 +30,20 @@ import Graph
     , vertices
     )
 import HtmlFiles (indexHtml, projectHtml)
-import JSGraph (nodesAndEdges, reverseJs)
+import JsVariable (nodesAndEdges, reverseJs)
 import Options (Options(..), runCliParser)
 import Parser (parseFile)
 import Project (Project(..))
 
 
+-- | The main function
 main :: IO ()
 main = runCliParser parseInputAndWriteToOuput
 
 -- IO functions
 
+
+-- | Convert a 'String' to a well typed 'Path'
 stringToPath :: String -> IO (Path Abs Dir)
 stringToPath outDirStr@('/':_) = parseAbsDir outDirStr
 stringToPath outDirStr = do
@@ -48,22 +52,31 @@ stringToPath outDirStr = do
     pure $ currentDir </> outDir
 
 
+-- | Write some 'Text' to a file creating intermediate directories if needed
 writeFileTextPath :: MonadIO m => Path a File -> Text -> m ()
 writeFileTextPath file text = do
     ensureDir $ parent file
     writeFileText (toFilePath file) text
 
 
+-- | Write a graph to a file
 writeFileGraph :: Path a File -> Graph -> IO ()
 writeFileGraph file graph =
     writeFileTextPath file $ nodesAndEdges graph
 
 
+-- | Write a graph and reverse dependencies to a file
 writeFileGraphAndReverseDeps :: Path a File -> Graph -> [Vertex] -> IO ()
 writeFileGraphAndReverseDeps file graph revDeps =
     writeFileTextPath file $ nodesAndEdges graph <> reverseJs revDeps
 
 
+-- | Write the projects in a 'Graph' into a directory. It consists in
+-- - an index.html file
+-- - a project.html file
+-- - for each project: a graph with its reverse dependency in two versions:
+--   - the first level dependencies
+--   - the full graph with all hidden dependencies
 writeProjectsIn :: Graph -> Path Abs Dir -> IO()
 writeProjectsIn graph outputDir = do
     -- Write the all graph
@@ -90,6 +103,7 @@ writeProjectsIn graph outputDir = do
     writeFileTextPath (outputDir </> $(mkRelFile "index.html")) $ indexHtml graph
 
 
+-- | The command interpreter function
 parseInputAndWriteToOuput :: Options -> IO ()
 parseInputAndWriteToOuput (Options inputFileStr outputDirStr) = do
     -- Parse the file

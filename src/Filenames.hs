@@ -1,3 +1,4 @@
+-- | Some constants and static filenames
 module Filenames (allGraph, allGraphJs, level1GraphJs, fullGraphJs)
     where
 

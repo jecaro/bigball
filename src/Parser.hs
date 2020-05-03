@@ -1,3 +1,5 @@
+-- | Applicative parser for a .sln file
+-- | Applicative parser for a sln file
 module Parser (parseFile)
     where
 
@@ -26,14 +28,17 @@ import Graph (Graph, fromProjects)
 import Project (Id(..), Project(..))
 
 
+-- | Skip characters until a specific character is found
 skipTo :: Parser a -> Parser ()
 skipTo p = void $ manyTill anyChar p
 
 
+-- | Skip the rest of the line
 skipLine :: Parser ()
 skipLine = skipTo endOfLine
 
 
+-- | Parse the project name and its id
 projectNameAndId :: Parser (Text, Id)
 projectNameAndId = do
     void $ string "Project" >> skipTo (string " = \"")
@@ -44,10 +49,12 @@ projectNameAndId = do
     pure (name, identifier)
 
 
+-- | Skip project line
 projectEnd :: Parser ()
 projectEnd = string "EndProject" *> skipLine
 
 
+-- | Parser for the project
 projectParser :: Parser Project
 projectParser
     = idAndProject
@@ -56,26 +63,32 @@ projectParser
   where idAndProject (name, identifier) = Project identifier name
 
 
+-- | Parse the beginning of a section
 sectionStart :: Parser ()
 sectionStart = spaces >> string "ProjectSection" *> skipLine
 
 
+-- | Parse the end of a section
 sectionEnd :: Parser ()
 sectionEnd = spaces >> string "EndProjectSection" *> skipLine
 
 
+-- | Parse the project 'Id'
 projectId :: Parser Id
 projectId = Id . toText <$> between (char '{') (char '}') (many (noneOf ['\n','}']))
 
 
+-- | Parse a dependency
 sectionLine :: Parser Id
 sectionLine = spaces >> projectId <* skipLine
 
 
+-- | Parse all the dependencies of a project
 section :: Parser [Id]
 section = between sectionStart sectionEnd $ many (try sectionLine)
 
 
+-- | Parse the sln file and build up the graph with the project list
 parseFile :: Parser Graph
 parseFile = do
     _ <- count 4 skipLine

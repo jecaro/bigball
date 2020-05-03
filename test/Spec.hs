@@ -1,3 +1,4 @@
+-- | The test suite
 import Relude
 
 import Data.Array (array)
