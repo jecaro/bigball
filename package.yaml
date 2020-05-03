@@ -38,7 +38,7 @@ library:
   source-dirs: src
 
 executables:
-  bigball-exe:
+  bigball:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
