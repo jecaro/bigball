@@ -1,5 +1,4 @@
 -- | Applicative parser for a .sln file
--- | Applicative parser for a sln file
 module Parser (parseFile)
     where
 
@@ -16,7 +15,9 @@ import Text.Parsec
     , many1
     , manyTill
     , noneOf
+    , notFollowedBy
     , option
+    , skipMany
     , spaces
     , string
     , try
@@ -41,12 +42,17 @@ skipLine = skipTo endOfLine
 -- | Parse the project name and its id
 projectNameAndId :: Parser (Text, Id)
 projectNameAndId = do
-    void $ string "Project" >> skipTo (string " = \"")
+    projectStartOfLine >> skipTo (string " = \"")
     name <- toText <$> many1 (alphaNum <|> char '_')
-    void $ count 2 $ skipTo (string ", \"")
+    _ <- count 2 $ skipTo (string ", \"")
     identifier <- projectId
     skipLine
     pure (name, identifier)
+
+
+-- | Parse the start of a 'Project' line
+projectStartOfLine :: Parser ()
+projectStartOfLine = void $ string "Project"
 
 
 -- | Skip project line
@@ -91,7 +97,7 @@ section = between sectionStart sectionEnd $ many (try sectionLine)
 -- | Parse the sln file and build up the graph with the project list
 parseFile :: Parser Graph
 parseFile = do
-    _ <- count 4 skipLine
-    projectsList <- many (try projectParser)
+    skipMany (notFollowedBy projectStartOfLine >> skipLine)
+    projectsList <- many projectParser
     pure $ fromProjects projectsList
 
