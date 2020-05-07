@@ -40,6 +40,9 @@ packages:
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
 #
 # extra-deps: []
+extra-deps:
+- git: https://github.com/commercialhaskell/path
+  commit: b45a16de33f08fe562ee01c71184c46c31554011
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

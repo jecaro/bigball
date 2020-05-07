@@ -3,7 +3,18 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages: []
+packages:
+- completed:
+    name: path
+    version: 0.7.0
+    git: https://github.com/commercialhaskell/path
+    pantry-tree:
+      size: 1174
+      sha256: f039c55732caa1475b66c87c4788a347824d6db855bf16f223bbb09828bf8bb5
+    commit: b45a16de33f08fe562ee01c71184c46c31554011
+  original:
+    git: https://github.com/commercialhaskell/path
+    commit: b45a16de33f08fe562ee01c71184c46c31554011
 snapshots:
 - completed:
     size: 492027

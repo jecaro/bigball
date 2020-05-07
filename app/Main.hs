@@ -8,10 +8,10 @@ import Path
     , Dir
     , File
     , Path
+    , SomeBase(..)
+    , fromSomeFile
     , mkRelFile
     , parent
-    , parseAbsDir
-    , parseRelDir
     , toFilePath
     , (</>)
     )
@@ -41,15 +41,6 @@ main :: IO ()
 main = runCliParser parseInputAndWriteToOuput
 
 -- IO functions
-
-
--- | Convert a 'String' to a well typed 'Path'
-stringToPath :: String -> IO (Path Abs Dir)
-stringToPath outDirStr@('/':_) = parseAbsDir outDirStr
-stringToPath outDirStr = do
-    currentDir <- getCurrentDir
-    outDir <- parseRelDir outDirStr
-    pure $ currentDir </> outDir
 
 
 -- | Write some 'Text' to a file creating intermediate directories if needed
@@ -103,13 +94,19 @@ writeProjectsIn graph outputDir = do
     writeFileTextPath (outputDir </> $(mkRelFile "index.html")) $ indexHtml graph
 
 
+-- | Convert 'SomeBase' to an absolute path prepending the current directory if
+-- needed
+withCurrentDir :: SomeBase Dir -> IO (Path Abs Dir)
+withCurrentDir (Abs path) = pure path
+withCurrentDir (Rel path) = getCurrentDir <&> (</> path)
+
+
 -- | The command interpreter function
 parseInputAndWriteToOuput :: Options -> IO ()
-parseInputAndWriteToOuput (Options inputFileStr outputDirStr) = do
+parseInputAndWriteToOuput (Options inputFile outputDir) = do
     -- Parse the file
-    res <- parseFromFile parseFile inputFileStr
+    res <- parseFromFile parseFile (fromSomeFile inputFile)
     case res of
         Left err -> putTextLn $ show err
-        Right projects -> do
-            outputDir <- stringToPath outputDirStr
-            writeProjectsIn projects outputDir
+        Right projects -> writeProjectsIn projects =<< withCurrentDir outputDir
+

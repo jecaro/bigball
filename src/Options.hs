@@ -5,23 +5,25 @@ module Options (Options(..), runCliParser)
 import Relude
 
 import qualified Options.Applicative as Opt
+import Path (Dir, File, SomeBase, parseSomeDir, parseSomeFile)
+
 
 
 -- | The program options
 data Options = Options
-  { optInputFile :: String  -- ^ The file to parse
-  , optOutputDir :: String -- ^ The output directory
+  { optInputFile :: SomeBase File -- ^ The file to parse
+  , optOutputDir :: SomeBase Dir  -- ^ The output directory
   }
 
 
 -- | The description of the command line options
 options :: Opt.Parser Options
 options = Options
-      <$> Opt.strOption
+      <$> Opt.option (Opt.maybeReader parseSomeFile)
           ( Opt.long "input"
          <> Opt.metavar "INPUT"
          <> Opt.help "Input file" )
-      <*> Opt.strOption
+      <*> Opt.option (Opt.maybeReader parseSomeDir)
           ( Opt.long "output"
          <> Opt.metavar "OUTPUT"
          <> Opt.help "Output directory" )
