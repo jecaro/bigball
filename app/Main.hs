@@ -34,7 +34,7 @@ import Graph
 import HtmlFiles (indexHtml, projectHtml)
 import JsVariable (nodesAndEdges, reverseJs)
 import qualified Options
-import Parser (parseFile)
+import qualified Parser
 import Project (Project(..))
 
 
@@ -65,7 +65,7 @@ main = do
 -- | Create an error message
 render :: Error -> Text
 render (EOptions eOptions) = Options.render eOptions
-render (EParse parseError) = "Parse error: " <> show parseError
+render (EParse parseError) = Parser.render parseError
 render (ECreateDir filename msg) =
     "Error creating directory '" <> toText filename <> "' : " <> msg
 render (EReadFile filename msg) =
@@ -158,7 +158,7 @@ parseInputAndWriteToOuput (Options.Options inputFile outputDir) = do
 parseSlnFile :: Path Abs File -> ExceptT Error IO Graph
 parseSlnFile slnFile = do
     text <- handleExceptT handler $ readFileText filename
-    hoistEither . fmapL EParse $ parse parseFile filename text
+    hoistEither . fmapL EParse $ parse Parser.graph filename text
   where
     filename :: String
     filename = toFilePath slnFile

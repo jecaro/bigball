@@ -1,11 +1,12 @@
 -- | Applicative parser for a .sln file
-module Parser (parseFile)
+module Parser (graph, render)
     where
 
 import Relude hiding ((<|>), many)
 
 import Text.Parsec
-    ( alphaNum
+    ( ParseError
+    , alphaNum
     , anyChar
     , between
     , char
@@ -95,9 +96,13 @@ section = between sectionStart sectionEnd $ many (try sectionLine)
 
 
 -- | Parse the sln file and build up the graph with the project list
-parseFile :: Parser Graph
-parseFile = do
+graph :: Parser Graph
+graph = do
     skipMany (notFollowedBy projectStartOfLine >> skipLine)
     projectsList <- many projectParser
     pure $ fromProjects projectsList
 
+
+-- | Output a readable error message
+render :: ParseError -> Text
+render msg = "Parse error: " <> show msg
