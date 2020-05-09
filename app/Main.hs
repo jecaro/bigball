@@ -3,20 +3,21 @@
 
 import Relude
 
+import Control.Error (fmapL, handleExceptT)
+import Control.Exception.Base (IOException)
 import Path
     ( Abs
     , Dir
     , File
     , Path
     , SomeBase(..)
-    , fromSomeFile
     , mkRelFile
     , parent
     , toFilePath
     , (</>)
     )
 import Path.IO (ensureDir, getCurrentDir)
-import Text.Parsec.Text (parseFromFile)
+import Text.Parsec (ParseError, parse)
 
 import Filenames (allGraphJs, fullGraphJs, level1GraphJs)
 import Graph
@@ -31,33 +32,66 @@ import Graph
     )
 import HtmlFiles (indexHtml, projectHtml)
 import JsVariable (nodesAndEdges, reverseJs)
-import Options (Options(..), runCliParser)
+import Options (Options(..), parseOptions)
 import Parser (parseFile)
 import Project (Project(..))
+
+-- | All the things that might go wrong
+data Error
+    = EParse ParseError
+    | ECreateDir FilePath Text
+    | EReadFile FilePath Text
+    | EWriteFile FilePath Text
 
 
 -- | The main function
 main :: IO ()
-main = runCliParser parseInputAndWriteToOuput
+main = do
+    -- Parse command line may exit
+    options <- parseOptions
+    -- Execute the program
+    whenLeftM_ (runExceptT (parseInputAndWriteToOuput options)) $
+        putTextLn . renderError
+
+
+-- | Create an error message
+renderError :: Error -> Text
+renderError (EParse parseError) = "Parse error: " <> show parseError
+renderError (ECreateDir filename msg) =
+    "Error creating directory '" <> toText filename <> "' : " <> msg
+renderError (EReadFile filename msg) =
+    "Error reading '" <> toText filename <> "' : " <> msg
+renderError (EWriteFile filename msg) =
+    "Error writing '" <> toText filename <> "' : " <> msg
+
 
 -- IO functions
 
 
 -- | Write some 'Text' to a file creating intermediate directories if needed
-writeFileTextPath :: MonadIO m => Path a File -> Text -> m ()
+writeFileTextPath :: Path a File -> Text -> ExceptT Error IO ()
 writeFileTextPath file text = do
-    ensureDir $ parent file
-    writeFileText (toFilePath file) text
+    handleExceptT hCreateDir $ ensureDir $ parent file
+    handleExceptT hWriteFile $ writeFileText filename text
+  where
+    filename = toFilePath file
+    hCreateDir :: IOException -> Error
+    hCreateDir e = ECreateDir filename (show e)
+    hWriteFile :: IOException -> Error
+    hWriteFile e = EWriteFile filename (show e)
 
 
 -- | Write a graph to a file
-writeFileGraph :: Path a File -> Graph -> IO ()
-writeFileGraph file graph =
-    writeFileTextPath file $ nodesAndEdges graph
+writeFileGraph :: Path a File -> Graph -> ExceptT Error IO ()
+writeFileGraph file graph = writeFileTextPath file $ nodesAndEdges graph
 
 
 -- | Write a graph and reverse dependencies to a file
-writeFileGraphAndReverseDeps :: Path a File -> Graph -> [Vertex] -> IO ()
+writeFileGraphAndReverseDeps
+    :: Path a File
+    -> Graph
+    -> [Vertex]
+    -> ExceptT Error IO ()
 writeFileGraphAndReverseDeps file graph revDeps =
     writeFileTextPath file $ nodesAndEdges graph <> reverseJs revDeps
 
@@ -68,7 +102,7 @@ writeFileGraphAndReverseDeps file graph revDeps =
 -- - for each project: a graph with its reverse dependency in two versions:
 --   - the first level dependencies
 --   - the full graph with all hidden dependencies
-writeProjectsIn :: Graph -> Path Abs Dir -> IO()
+writeProjectsIn :: Graph -> Path Abs Dir -> ExceptT Error IO()
 writeProjectsIn graph outputDir = do
     -- Write the all graph
     filenameAll <- allGraphJs
@@ -96,17 +130,28 @@ writeProjectsIn graph outputDir = do
 
 -- | Convert 'SomeBase' to an absolute path prepending the current directory if
 -- needed
-withCurrentDir :: SomeBase Dir -> IO (Path Abs Dir)
+withCurrentDir :: MonadIO m => SomeBase a -> m (Path Abs a)
 withCurrentDir (Abs path) = pure path
 withCurrentDir (Rel path) = getCurrentDir <&> (</> path)
 
 
 -- | The command interpreter function
-parseInputAndWriteToOuput :: Options -> IO ()
+parseInputAndWriteToOuput :: Options -> ExceptT Error IO ()
 parseInputAndWriteToOuput (Options inputFile outputDir) = do
     -- Parse the file
-    res <- parseFromFile parseFile (fromSomeFile inputFile)
-    case res of
-        Left err -> putTextLn $ show err
-        Right projects -> writeProjectsIn projects =<< withCurrentDir outputDir
+    inputFileAbs <- liftIO $ withCurrentDir inputFile
+    projects <- parseSlnFile inputFileAbs
+    outputDirAbs <- withCurrentDir outputDir
+    writeProjectsIn projects outputDirAbs
 
+
+-- | Parse the solution file
+parseSlnFile :: Path Abs File -> ExceptT Error IO Graph
+parseSlnFile slnFile = do
+    text <- handleExceptT handler $ readFileText filename
+    hoistEither . fmapL EParse $ parse parseFile filename text
+  where
+    filename :: String
+    filename = toFilePath slnFile
+    handler :: IOException -> Error
+    handler e = EReadFile filename (show e)

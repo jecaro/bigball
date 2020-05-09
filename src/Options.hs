@@ -1,5 +1,5 @@
 -- | opt-parse applicative description of command line options
-module Options (Options(..), runCliParser)
+module Options (Options(..), parseOptions)
     where
 
 import Relude
@@ -30,7 +30,7 @@ options = Options
 
 
 -- | Run the command line parser with the command interpreter
-runCliParser :: (Options -> IO a) -> IO a
-runCliParser action =  Opt.execParser opts >>= action
+parseOptions :: IO Options
+parseOptions =  Opt.execParser opts
   where opts = Opt.info (options <**> Opt.helper) Opt.idm
 
