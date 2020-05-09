@@ -42,9 +42,9 @@ import Project (Project(..))
 data Error
     = EParse ParseError
     | EOptions Options.Error
-    | ECreateDir FilePath Text
-    | EReadFile FilePath Text
-    | EWriteFile FilePath Text
+    | ECreateDir Text IOException
+    | EReadFile Text IOException
+    | EWriteFile Text IOException
 
 
 -- | The main function
@@ -66,12 +66,12 @@ main = do
 render :: Error -> Text
 render (EOptions eOptions) = Options.render eOptions
 render (EParse parseError) = Parser.render parseError
-render (ECreateDir filename msg) =
-    "Error creating directory '" <> toText filename <> "' : " <> msg
-render (EReadFile filename msg) =
-    "Error reading '" <> toText filename <> "' : " <> msg
-render (EWriteFile filename msg) =
-    "Error writing '" <> toText filename <> "' : " <> msg
+render (ECreateDir filename e) =
+    "Error creating directory '" <> toText filename <> "' : " <> show e
+render (EReadFile filename e) =
+    "Error reading '" <> toText filename <> "' : " <> show e
+render (EWriteFile filename e) =
+    "Error writing '" <> toText filename <> "' : " <> show e
 
 
 -- IO functions
@@ -84,10 +84,11 @@ writeFileTextPath file text = do
     handleExceptT hWriteFile $ writeFileText filename text
   where
     filename = toFilePath file
+    filenameText = toText filename
     hCreateDir :: IOException -> Error
-    hCreateDir e = ECreateDir filename (show e)
+    hCreateDir = ECreateDir filenameText
     hWriteFile :: IOException -> Error
-    hWriteFile e = EWriteFile filename (show e)
+    hWriteFile = EWriteFile filenameText
 
 
 -- | Write a graph to a file
@@ -163,4 +164,4 @@ parseSlnFile slnFile = do
     filename :: String
     filename = toFilePath slnFile
     handler :: IOException -> Error
-    handler e = EReadFile filename (show e)
+    handler = EReadFile (toText filename)
