@@ -1,5 +1,5 @@
 -- | opt-parse applicative description of command line options
-module Options (Options(..), parseOptions)
+module Options (Options(..), Error, parse, render)
     where
 
 import Relude
@@ -8,12 +8,31 @@ import qualified Options.Applicative as Opt
 import Path (Dir, File, SomeBase, parseSomeDir, parseSomeFile)
 
 
-
 -- | The program options
 data Options = Options
   { optInputFile :: SomeBase File -- ^ The file to parse
   , optOutputDir :: SomeBase Dir  -- ^ The output directory
   }
+
+
+-- | The different kinds of error
+data Error = Parse Text | CompletionInvoked
+
+
+-- | Run the command line parser with the command interpreter
+parse :: String -> [String] -> Either Error Options
+parse progName args =
+    let opts = Opt.info (options <**> Opt.helper) Opt.idm
+    in case Opt.execParserPure Opt.defaultPrefs opts args of
+        Opt.Success o -> Right o
+        Opt.Failure help -> Left $ Parse $ toText $ fst $ Opt.renderFailure help progName
+        Opt.CompletionInvoked _ -> Left CompletionInvoked
+
+
+-- | Get a readable message out of the 'Error'
+render :: Error -> Text
+render (Parse msg) = msg
+render CompletionInvoked = "Completion is not handled"
 
 
 -- | The description of the command line options
@@ -28,9 +47,4 @@ options = Options
          <> Opt.metavar "OUTPUT"
          <> Opt.help "Output directory" )
 
-
--- | Run the command line parser with the command interpreter
-parseOptions :: IO Options
-parseOptions =  Opt.execParser opts
-  where opts = Opt.info (options <**> Opt.helper) Opt.idm
 

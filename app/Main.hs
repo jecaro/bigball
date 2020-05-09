@@ -17,6 +17,7 @@ import Path
     , (</>)
     )
 import Path.IO (ensureDir, getCurrentDir)
+import System.Environment (getProgName, getArgs)
 import Text.Parsec (ParseError, parse)
 
 import Filenames (allGraphJs, fullGraphJs, level1GraphJs)
@@ -32,13 +33,15 @@ import Graph
     )
 import HtmlFiles (indexHtml, projectHtml)
 import JsVariable (nodesAndEdges, reverseJs)
-import Options (Options(..), parseOptions)
+import qualified Options
 import Parser (parseFile)
 import Project (Project(..))
+
 
 -- | All the things that might go wrong
 data Error
     = EParse ParseError
+    | EOptions Options.Error
     | ECreateDir FilePath Text
     | EReadFile FilePath Text
     | EWriteFile FilePath Text
@@ -47,21 +50,27 @@ data Error
 -- | The main function
 main :: IO ()
 main = do
-    -- Parse command line may exit
-    options <- parseOptions
+    progName <- getProgName
+    args <- getArgs
     -- Execute the program
-    whenLeftM_ (runExceptT (parseInputAndWriteToOuput options)) $
-        putTextLn . renderError
+    res <- runExceptT $ do
+        options <- hoistEither . fmapL EOptions $ Options.parse progName args
+        parseInputAndWriteToOuput options
+    -- Handle error
+    whenLeft_ res $ \e -> do
+        putTextLn $ render e
+        exitFailure
 
 
 -- | Create an error message
-renderError :: Error -> Text
-renderError (EParse parseError) = "Parse error: " <> show parseError
-renderError (ECreateDir filename msg) =
+render :: Error -> Text
+render (EOptions eOptions) = Options.render eOptions
+render (EParse parseError) = "Parse error: " <> show parseError
+render (ECreateDir filename msg) =
     "Error creating directory '" <> toText filename <> "' : " <> msg
-renderError (EReadFile filename msg) =
+render (EReadFile filename msg) =
     "Error reading '" <> toText filename <> "' : " <> msg
-renderError (EWriteFile filename msg) =
+render (EWriteFile filename msg) =
     "Error writing '" <> toText filename <> "' : " <> msg
 
 
@@ -136,8 +145,8 @@ withCurrentDir (Rel path) = getCurrentDir <&> (</> path)
 
 
 -- | The command interpreter function
-parseInputAndWriteToOuput :: Options -> ExceptT Error IO ()
-parseInputAndWriteToOuput (Options inputFile outputDir) = do
+parseInputAndWriteToOuput :: Options.Options -> ExceptT Error IO ()
+parseInputAndWriteToOuput (Options.Options inputFile outputDir) = do
     -- Parse the file
     inputFileAbs <- liftIO $ withCurrentDir inputFile
     projects <- parseSlnFile inputFileAbs
