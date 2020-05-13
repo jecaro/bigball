@@ -23,7 +23,6 @@ dependencies:
 - array
 - base >= 4.7 && < 5
 - containers
-- errors
 - exceptions
 - hspec
 - file-embed
@@ -34,6 +33,7 @@ dependencies:
 - path-io
 - relude
 - text
+- transformers-except
 
 library:
   source-dirs: src

@@ -3,8 +3,8 @@
 
 import Relude
 
-import Control.Error (fmapL, handleExceptT)
 import Control.Exception.Base (IOException)
+import Control.Monad.Trans.Except.Extra (firstExceptT, handleIOExceptT)
 import Path
     ( Abs
     , Dir
@@ -54,7 +54,8 @@ main = do
     args <- getArgs
     -- Execute the program
     res <- runExceptT $ do
-        options <- hoistEither . fmapL EOptions $ Options.parse progName args
+        options <- firstExceptT EOptions . hoistEither $
+            Options.parse progName args
         parseInputAndWriteToOuput options
     -- Handle error
     whenLeft_ res $ \e -> do
@@ -80,15 +81,12 @@ render (EWriteFile filename e) =
 -- | Write some 'Text' to a file creating intermediate directories if needed
 writeFileTextPath :: Path a File -> Text -> ExceptT Error IO ()
 writeFileTextPath file text = do
-    handleExceptT hCreateDir $ ensureDir $ parent file
-    handleExceptT hWriteFile $ writeFileText filename text
+    handleIOExceptT (ECreateDir dirnameText) $ ensureDir $ parent file
+    handleIOExceptT (EWriteFile filenameText) $ writeFileText filename text
   where
     filename = toFilePath file
     filenameText = toText filename
-    hCreateDir :: IOException -> Error
-    hCreateDir = ECreateDir filenameText
-    hWriteFile :: IOException -> Error
-    hWriteFile = EWriteFile filenameText
+    dirnameText = toText $ toFilePath $ parent file
 
 
 -- | Write a graph to a file
@@ -145,12 +143,13 @@ withCurrentDir (Abs path) = pure path
 withCurrentDir (Rel path) = getCurrentDir <&> (</> path)
 
 
--- | The command interpreter function
+-- | Actual processing function
 parseInputAndWriteToOuput :: Options.Options -> ExceptT Error IO ()
 parseInputAndWriteToOuput (Options.Options inputFile outputDir) = do
-    -- Parse the file
+    -- Parse the solution file
     inputFileAbs <- liftIO $ withCurrentDir inputFile
     projects <- parseSlnFile inputFileAbs
+    -- And write the result in the output file
     outputDirAbs <- withCurrentDir outputDir
     writeProjectsIn projects outputDirAbs
 
@@ -158,10 +157,7 @@ parseInputAndWriteToOuput (Options.Options inputFile outputDir) = do
 -- | Parse the solution file
 parseSlnFile :: Path Abs File -> ExceptT Error IO Graph
 parseSlnFile slnFile = do
-    text <- handleExceptT handler $ readFileText filename
-    hoistEither . fmapL EParse $ parse Parser.graph filename text
+    text <- handleIOExceptT (EReadFile $ toText filename) $ readFileText filename
+    firstExceptT EParse . hoistEither $ parse Parser.graph filename text
   where
-    filename :: String
     filename = toFilePath slnFile
-    handler :: IOException -> Error
-    handler = EReadFile (toText filename)
