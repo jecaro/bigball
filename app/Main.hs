@@ -5,6 +5,7 @@ import Relude
 
 import Control.Exception.Base (IOException)
 import Control.Monad.Trans.Except.Extra (firstExceptT, handleIOExceptT)
+import Data.Text.IO (hPutStrLn)
 import Path
     ( Abs
     , Dir
@@ -59,11 +60,11 @@ main = do
         parseInputAndWriteToOuput options
     -- Handle error
     whenLeft_ res $ \e -> do
-        putTextLn $ render e
+        hPutStrLn stderr $ render e
         exitFailure
 
 
--- | Create an error message
+-- | Render the error message
 render :: Error -> Text
 render (EOptions eOptions) = Options.render eOptions
 render (EParse parseError) = Parser.render parseError
