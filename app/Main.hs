@@ -1,43 +1,42 @@
--- | The main module
 {-# LANGUAGE TemplateHaskell #-}
 
-import Relude
+-- | The main module
+module Main where
 
 import Control.Exception.Base (IOException)
 import Control.Monad.Trans.Except.Extra (firstExceptT, handleIOExceptT)
 import Data.Text.IO (hPutStrLn)
-import Path
-    ( Abs
-    , Dir
-    , File
-    , Path
-    , SomeBase(..)
-    , mkRelFile
-    , parent
-    , toFilePath
-    , (</>)
-    )
-import Path.IO (ensureDir, getCurrentDir)
-import System.Environment (getProgName, getArgs)
-import Text.Parsec (ParseError, parse)
-
 import Filenames (allGraphJs, fullGraphJs, level1GraphJs)
 import Graph
-    ( Graph
-    , Vertex
-    , fromVertexFull
-    , fromVertexLevel1
-    , projectFromVertex
-    , reverseDependenciesFull
-    , reverseDependenciesLevel1
-    , vertices
+    ( Graph,
+      Vertex,
+      fromVertexFull,
+      fromVertexLevel1,
+      projectFromVertex,
+      reverseDependenciesFull,
+      reverseDependenciesLevel1,
+      vertices,
     )
 import HtmlFiles (indexHtml, projectHtml)
 import JsVariable (nodesAndEdges, reverseJs)
 import qualified Options
 import qualified Parser
-import Project (Project(..))
-
+import Path
+    ( (</>),
+      Abs,
+      Dir,
+      File,
+      Path,
+      SomeBase (..),
+      mkRelFile,
+      parent,
+      toFilePath,
+    )
+import Path.IO (ensureDir, getCurrentDir)
+import Project (Project (..))
+import Relude
+import System.Environment (getArgs, getProgName)
+import Text.Parsec (ParseError, parse)
 
 -- | All the things that might go wrong
 data Error
@@ -47,7 +46,6 @@ data Error
     | EReadFile Text IOException
     | EWriteFile Text IOException
 
-
 -- | The main function
 main :: IO ()
 main = do
@@ -55,14 +53,13 @@ main = do
     args <- getArgs
     -- Execute the program
     res <- runExceptT $ do
-        options <- firstExceptT EOptions . hoistEither $
-            Options.parse progName args
+        options <-
+            firstExceptT EOptions . hoistEither $ Options.parse progName args
         parseInputAndWriteToOuput options
     -- Handle error
     whenLeft_ res $ \e -> do
         hPutStrLn stderr $ render e
         exitFailure
-
 
 -- | Render the error message
 render :: Error -> Text
@@ -75,35 +72,30 @@ render (EReadFile filename e) =
 render (EWriteFile filename e) =
     "Error writing '" <> toText filename <> "' : " <> show e
 
-
 -- IO functions
-
 
 -- | Write some 'Text' to a file creating intermediate directories if needed
 writeFileTextPath :: Path a File -> Text -> ExceptT Error IO ()
 writeFileTextPath file text = do
     handleIOExceptT (ECreateDir dirnameText) $ ensureDir $ parent file
     handleIOExceptT (EWriteFile filenameText) $ writeFileText filename text
-  where
-    filename = toFilePath file
-    filenameText = toText filename
-    dirnameText = toText $ toFilePath $ parent file
-
+    where
+        filename = toFilePath file
+        filenameText = toText filename
+        dirnameText = toText $ toFilePath $ parent file
 
 -- | Write a graph to a file
 writeFileGraph :: Path a File -> Graph -> ExceptT Error IO ()
 writeFileGraph file graph = writeFileTextPath file $ nodesAndEdges graph
 
-
 -- | Write a graph and reverse dependencies to a file
-writeFileGraphAndReverseDeps
-    :: Path a File
-    -> Graph
-    -> [Vertex]
-    -> ExceptT Error IO ()
+writeFileGraphAndReverseDeps ::
+    Path a File ->
+    Graph ->
+    [Vertex] ->
+    ExceptT Error IO ()
 writeFileGraphAndReverseDeps file graph revDeps =
     writeFileTextPath file $ nodesAndEdges graph <> reverseJs revDeps
-
 
 -- | Write the projects in a 'Graph' into a directory. It consists in
 -- - an index.html file
@@ -111,7 +103,7 @@ writeFileGraphAndReverseDeps file graph revDeps =
 -- - for each project: a graph with its reverse dependency in two versions:
 --   - the first level dependencies
 --   - the full graph with all hidden dependencies
-writeProjectsIn :: Graph -> Path Abs Dir -> ExceptT Error IO()
+writeProjectsIn :: Graph -> Path Abs Dir -> ExceptT Error IO ()
 writeProjectsIn graph outputDir = do
     -- Write the all graph
     filenameAll <- allGraphJs
@@ -136,13 +128,11 @@ writeProjectsIn graph outputDir = do
     writeFileTextPath (outputDir </> $(mkRelFile "project.html")) projectHtml
     writeFileTextPath (outputDir </> $(mkRelFile "index.html")) $ indexHtml graph
 
-
 -- | Convert 'SomeBase' to an absolute path prepending the current directory if
 -- needed
 withCurrentDir :: MonadIO m => SomeBase a -> m (Path Abs a)
 withCurrentDir (Abs path) = pure path
 withCurrentDir (Rel path) = getCurrentDir <&> (</> path)
-
 
 -- | Actual processing function
 parseInputAndWriteToOuput :: Options.Options -> ExceptT Error IO ()
@@ -154,11 +144,10 @@ parseInputAndWriteToOuput (Options.Options inputFile outputDir) = do
     outputDirAbs <- withCurrentDir outputDir
     writeProjectsIn projects outputDirAbs
 
-
 -- | Parse the solution file
 parseSlnFile :: Path Abs File -> ExceptT Error IO Graph
 parseSlnFile slnFile = do
     text <- handleIOExceptT (EReadFile $ toText filename) $ readFileText filename
     firstExceptT EParse . hoistEither $ parse Parser.graph filename text
-  where
-    filename = toFilePath slnFile
+    where
+        filename = toFilePath slnFile
