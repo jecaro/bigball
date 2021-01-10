@@ -27,6 +27,7 @@ import Path
       Dir,
       File,
       Path,
+      Rel,
       SomeBase (..),
       mkRelFile,
       parent,

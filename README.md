@@ -18,7 +18,7 @@ The project page also displays the list of the reverse dependencies.
 # Build and install
 
 ```
-stack install
+nix-env -f ./default.nix -iA bigball
 ```
 
 # Run
