@@ -1,0 +1,13 @@
+cradle:
+  cabal:
+    - path: "src"
+      component: "lib:bigball"
+
+    - path: "app/Main.hs"
+      component: "bigball:exe:bigball"
+
+    - path: "app/Paths_bigball.hs"
+      component: "bigball:exe:bigball"
+
+    - path: "test"
+      component: "bigball:test:bigball-test"
