@@ -1,6 +1,6 @@
 # bigball
 
-[![Build Status][status-png]][status]
+[![CI][status-png]][status]
 
 Display the dependencies of a Microsoft Visual Studio solution file.
 
@@ -40,8 +40,8 @@ solution file:
 and the long [index page][osgindex] with its 268 projects.
 
 
-  [status]: https://travis-ci.org/jecaro/bigball?branch=master
-  [status-png]: https://travis-ci.org/jecaro/bigball.svg?branch=master
+  [status]: https://github.com/jecaro/bigball/actions
+  [status-png]: https://github.com/jecaro/bigball/workflows/CI/badge.svg
   [vis]: https://visjs.org/
   [osgindex]: docs/osgindex.png
   [osg]: http://www.openscenegraph.org/
