@@ -7,36 +7,35 @@ import Control.Exception.Base (IOException)
 import Control.Monad.Trans.Except.Extra (firstExceptT, handleIOExceptT)
 import Data.Text.IO (hPutStrLn)
 import Filenames (allGraphJs, fullGraphJs, level1GraphJs)
-import Graph
-    ( Graph,
-      Vertex,
-      fromVertexFull,
-      fromVertexLevel1,
-      projectFromVertex,
-      reverseDependenciesFull,
-      reverseDependenciesLevel1,
-      vertices,
-    )
+import Graph (
+    Graph,
+    Vertex,
+    fromVertexFull,
+    fromVertexLevel1,
+    projectFromVertex,
+    reverseDependenciesFull,
+    reverseDependenciesLevel1,
+    vertices,
+ )
 import HtmlFiles (indexHtml, projectHtml)
 import JsVariable (nodesAndEdges, reverseJs)
 import qualified Options
 import qualified Parser
-import Path
-    ( (</>),
-      Abs,
-      Dir,
-      File,
-      Path,
-      Rel,
-      SomeBase (..),
-      mkRelFile,
-      parent,
-      toFilePath,
-    )
+import Path (
+    Abs,
+    Dir,
+    File,
+    Path,
+    SomeBase (..),
+    mkRelFile,
+    parent,
+    toFilePath,
+    (</>),
+ )
 import Path.IO (ensureDir, getCurrentDir)
 import Project (Project (..))
 import Relude
-import System.Environment (getArgs, getProgName)
+import System.Environment (getProgName)
 import Text.Parsec (ParseError, parse)
 
 -- | All the things that might go wrong
@@ -80,10 +79,10 @@ writeFileTextPath :: Path a File -> Text -> ExceptT Error IO ()
 writeFileTextPath file text = do
     handleIOExceptT (ECreateDir dirnameText) $ ensureDir $ parent file
     handleIOExceptT (EWriteFile filenameText) $ writeFileText filename text
-    where
-        filename = toFilePath file
-        filenameText = toText filename
-        dirnameText = toText $ toFilePath $ parent file
+  where
+    filename = toFilePath file
+    filenameText = toText filename
+    dirnameText = toText $ toFilePath $ parent file
 
 -- | Write a graph to a file
 writeFileGraph :: Path a File -> Graph -> ExceptT Error IO ()
@@ -98,12 +97,13 @@ writeFileGraphAndReverseDeps ::
 writeFileGraphAndReverseDeps file graph revDeps =
     writeFileTextPath file $ nodesAndEdges graph <> reverseJs revDeps
 
--- | Write the projects in a 'Graph' into a directory. It consists in
--- - an index.html file
--- - a project.html file
--- - for each project: a graph with its reverse dependency in two versions:
---   - the first level dependencies
---   - the full graph with all hidden dependencies
+{- | Write the projects in a 'Graph' into a directory. It consists in
+ - an index.html file
+ - a project.html file
+ - for each project: a graph with its reverse dependency in two versions:
+   - the first level dependencies
+   - the full graph with all hidden dependencies
+-}
 writeProjectsIn :: Graph -> Path Abs Dir -> ExceptT Error IO ()
 writeProjectsIn graph outputDir = do
     -- Write the all graph
@@ -129,8 +129,9 @@ writeProjectsIn graph outputDir = do
     writeFileTextPath (outputDir </> $(mkRelFile "project.html")) projectHtml
     writeFileTextPath (outputDir </> $(mkRelFile "index.html")) $ indexHtml graph
 
--- | Convert 'SomeBase' to an absolute path prepending the current directory if
--- needed
+{- | Convert 'SomeBase' to an absolute path prepending the current directory if
+ needed
+-}
 withCurrentDir :: MonadIO m => SomeBase a -> m (Path Abs a)
 withCurrentDir (Abs path) = pure path
 withCurrentDir (Rel path) = getCurrentDir <&> (</> path)
@@ -150,5 +151,5 @@ parseSlnFile :: Path Abs File -> ExceptT Error IO Graph
 parseSlnFile slnFile = do
     text <- handleIOExceptT (EReadFile $ toText filename) $ readFileText filename
     firstExceptT EParse . hoistEither $ parse Parser.graph filename text
-    where
-        filename = toFilePath slnFile
+  where
+    filename = toFilePath slnFile
