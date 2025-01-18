@@ -8,31 +8,35 @@
       forAllSystems = f: nixpkgs.lib.genAttrs supportedSystems (system: f system);
       nixpkgsFor = forAllSystems (system: import nixpkgs {
         inherit system;
-        overlays = [ self.overlay ];
+        overlays = [ self.overlays.default ];
       });
     in
     {
-      overlay = (final: prev: {
+      overlays.default = (final: prev: {
         bigball = final.haskellPackages.callCabal2nix "bigball" ./. { };
       });
+
       packages = forAllSystems (system: {
         bigball = nixpkgsFor.${system}.bigball;
+        default = self.packages.${system}.bigball;
       });
-      defaultPackage = forAllSystems (system: self.packages.${system}.bigball);
+
       checks = self.packages;
-      devShell = forAllSystems (system:
+
+      devShells = forAllSystems (system:
         let haskellPackages = nixpkgsFor.${system}.haskellPackages;
         in
-        haskellPackages.shellFor {
-          packages = p: [ self.packages.${system}.bigball ];
-          withHoogle = true;
-          buildInputs = with haskellPackages; [
-            haskell-language-server
-            ghcid
-            cabal-install
-          ];
-          # Change the prompt to show that you are in a devShell
-          shellHook = "export PS1='\\[\\e[1;34m\\]dev > \\[\\e[0m\\]'";
-        });
+        {
+          default = haskellPackages.shellFor {
+            packages = p: [ self.packages.${system}.bigball ];
+            withHoogle = true;
+            buildInputs = with haskellPackages; [
+              haskell-language-server
+              ghcid
+              cabal-install
+            ];
+          };
+        }
+      );
     };
 }
