@@ -34,33 +34,33 @@ graph = fromProjects [project1, project2, project3, project4, project5]
 
 testGraph :: Spec
 testGraph = do
-    describe "Graph creation" $ do
-        it "Test the function fromProject with one node" $ do
-            grGraph (fromProjects [project1]) `shouldBe` oneNodeNoEdge
-            grGraph (fromProjects [project2]) `shouldBe` oneNodeNoEdge
-            grGraph (fromProjects [project3]) `shouldBe` oneNodeNoEdge
-            grGraph (fromProjects [project4]) `shouldBe` oneNodeNoEdge
-            grGraph (fromProjects [project5]) `shouldBe` oneNodeNoEdge
-        it "Test the function fromProject with more nodes but no edges" $ do
-            grGraph (fromProjects [project1, project4]) `shouldBe` twoNodesNoEdge
-            grGraph (fromProjects [project1, project5]) `shouldBe` twoNodesNoEdge
-        it "Test the function fromProject with nodes and edges" $
-            grGraph (fromProjects [project1, project2, project3])
-                `shouldBe` array (0, 2) [(0, [1, 2]), (1, [2]), (2, [])]
-    describe "Subgraphs" $ do
-        it "Test getting the first level" $
-            grGraph (fromVertexLevel1 graph (Vertex 0 "1"))
-                `shouldBe` array (0, 2) [(0, [1, 2]), (1, [2]), (2, [])]
-        it "Test getting all the levels" $
-            grGraph (fromVertexFull graph (Vertex 0 "1"))
-                `shouldBe` array
-                    (0, 4)
-                    [ (0, [1, 2]),
-                      (1, [2, 3]),
-                      (2, [4]),
-                      (3, []),
-                      (4, [])
-                    ]
+  describe "Graph creation" $ do
+    it "Test the function fromProject with one node" $ do
+      grGraph (fromProjects [project1]) `shouldBe` oneNodeNoEdge
+      grGraph (fromProjects [project2]) `shouldBe` oneNodeNoEdge
+      grGraph (fromProjects [project3]) `shouldBe` oneNodeNoEdge
+      grGraph (fromProjects [project4]) `shouldBe` oneNodeNoEdge
+      grGraph (fromProjects [project5]) `shouldBe` oneNodeNoEdge
+    it "Test the function fromProject with more nodes but no edges" $ do
+      grGraph (fromProjects [project1, project4]) `shouldBe` twoNodesNoEdge
+      grGraph (fromProjects [project1, project5]) `shouldBe` twoNodesNoEdge
+    it "Test the function fromProject with nodes and edges"
+      $ grGraph (fromProjects [project1, project2, project3])
+      `shouldBe` array (0, 2) [(0, [1, 2]), (1, [2]), (2, [])]
+  describe "Subgraphs" $ do
+    it "Test getting the first level"
+      $ grGraph (fromVertexLevel1 graph (Vertex 0 "1"))
+      `shouldBe` array (0, 2) [(0, [1, 2]), (1, [2]), (2, [])]
+    it "Test getting all the levels"
+      $ grGraph (fromVertexFull graph (Vertex 0 "1"))
+      `shouldBe` array
+        (0, 4)
+        [ (0, [1, 2]),
+          (1, [2, 3]),
+          (2, [4]),
+          (3, []),
+          (4, [])
+        ]
 
 main :: IO ()
 main = hspec testGraph

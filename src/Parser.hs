@@ -3,27 +3,27 @@ module Parser (graph, render) where
 
 import Graph (Graph, fromProjects)
 import Project (Id (..), Project (..))
-import Relude hiding ((<|>), many)
+import Relude hiding (many, (<|>))
 import Text.Parsec
-    ( (<|>),
-      ParseError,
-      alphaNum,
-      anyChar,
-      between,
-      char,
-      count,
-      endOfLine,
-      many,
-      many1,
-      manyTill,
-      noneOf,
-      notFollowedBy,
-      option,
-      skipMany,
-      spaces,
-      string,
-      try,
-    )
+  ( ParseError,
+    alphaNum,
+    anyChar,
+    between,
+    char,
+    count,
+    endOfLine,
+    many,
+    many1,
+    manyTill,
+    noneOf,
+    notFollowedBy,
+    option,
+    skipMany,
+    spaces,
+    string,
+    try,
+    (<|>),
+  )
 import Text.Parsec.Text (Parser)
 
 -- | Skip characters until a specific character is found
@@ -37,12 +37,12 @@ skipLine = skipTo endOfLine
 -- | Parse the project name and its id
 projectNameAndId :: Parser (Text, Id)
 projectNameAndId = do
-    projectStartOfLine >> skipTo (string " = \"")
-    name <- toText <$> many1 (alphaNum <|> char '_')
-    _ <- count 2 $ skipTo (string ", \"")
-    identifier <- projectId
-    skipLine
-    pure (name, identifier)
+  projectStartOfLine >> skipTo (string " = \"")
+  name <- toText <$> many1 (alphaNum <|> char '_')
+  _ <- count 2 $ skipTo (string ", \"")
+  identifier <- projectId
+  skipLine
+  pure (name, identifier)
 
 -- | Parse the start of a 'Project' line
 projectStartOfLine :: Parser ()
@@ -55,11 +55,12 @@ projectEnd = string "EndProject" *> skipLine
 -- | Parser for the project
 projectParser :: Parser Project
 projectParser =
-    idAndProject
-        <$> projectNameAndId
-        <*> option [] section <* projectEnd
-    where
-        idAndProject (name, identifier) = Project identifier name
+  idAndProject
+    <$> projectNameAndId
+    <*> option [] section
+    <* projectEnd
+  where
+    idAndProject (name, identifier) = Project identifier name
 
 -- | Parse the beginning of a section
 sectionStart :: Parser ()
@@ -84,9 +85,9 @@ section = between sectionStart sectionEnd $ many (try sectionLine)
 -- | Parse the sln file and build up the graph with the project list
 graph :: Parser Graph
 graph = do
-    skipMany (notFollowedBy projectStartOfLine >> skipLine)
-    projectsList <- many projectParser
-    pure $ fromProjects projectsList
+  skipMany (notFollowedBy projectStartOfLine >> skipLine)
+  projectsList <- many projectParser
+  pure $ fromProjects projectsList
 
 -- | Output a readable error message
 render :: ParseError -> Text

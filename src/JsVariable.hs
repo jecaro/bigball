@@ -17,8 +17,8 @@ node (Vertex i name) = "{id: " <> show i <> ", label: '" <> name <> "'}"
 -- | The variable containing the vertices
 nodesJs :: [Vertex] -> Text
 nodesJs v =
-    let defs = T.intercalate ",\n" $ node <$> v
-     in "const nodes = [\n" <> defs <> "]\n"
+  let defs = T.intercalate ",\n" $ node <$> v
+   in "const nodes = [\n" <> defs <> "]\n"
 
 -- | Put a vertex name in a js string
 vertexToText :: Vertex -> Text
@@ -27,8 +27,8 @@ vertexToText (Vertex _ name) = "'" <> name <> "'"
 -- | The reverse dependencies
 reverseJs :: [Vertex] -> Text
 reverseJs v =
-    let defs = T.intercalate ",\n" $ vertexToText <$> v
-     in "const reverse = [\n" <> defs <> "]\n"
+  let defs = T.intercalate ",\n" $ vertexToText <$> v
+   in "const reverse = [\n" <> defs <> "]\n"
 
 -- | An edge
 edge :: Edge -> Text
@@ -37,5 +37,5 @@ edge (Vertex f _, Vertex t _) = "{from: " <> show f <> ", to: " <> show t <> "}"
 -- | The variable containing the edges
 edgesJs :: [Edge] -> Text
 edgesJs e =
-    let defs = T.intercalate ",\n" $ edge <$> e
-     in "const edges = [\n" <> defs <> "]\n"
+  let defs = T.intercalate ",\n" $ edge <$> e
+   in "const edges = [\n" <> defs <> "]\n"
