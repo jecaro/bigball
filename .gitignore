@@ -1,5 +1,6 @@
-.stack-work/
-dist-newstyle/
-bigball.cabal
-tags
 *~
+.stack-work/
+/errors.err
+bigball.cabal
+dist-newstyle/
+tags
