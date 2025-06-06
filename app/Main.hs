@@ -41,6 +41,7 @@ import Text.Parsec (ParseError, parse)
 -- | All the things that might go wrong
 data Error
   = EParse ParseError
+  | EUTF8Decode UnicodeException
   | EOptions Options.Error
   | ECreateDir Text IOException
   | EReadFile Text IOException
@@ -65,6 +66,7 @@ main = do
 render :: Error -> Text
 render (EOptions eOptions) = Options.render eOptions
 render (EParse parseError) = Parser.render parseError
+render (EUTF8Decode e) = "Error decoding UTF-8: " <> show e
 render (ECreateDir filename e) =
   "Error creating directory '" <> toText filename <> "' : " <> show e
 render (EReadFile filename e) =
@@ -147,7 +149,8 @@ parseInputAndWriteToOuput (Options.Options inputFile outputDir) = do
 -- | Parse the solution file
 parseSlnFile :: Path Abs File -> ExceptT Error IO Graph
 parseSlnFile slnFile = do
-  text <- handleIOExceptT (EReadFile $ toText filename) $ readFileText filename
+  bs <- handleIOExceptT (EReadFile $ toText filename) $ readFileBS filename
+  text <- firstExceptT EUTF8Decode . hoistEither $ decodeUtf8Strict bs
   firstExceptT EParse . hoistEither $ parse Parser.graph filename text
   where
     filename = toFilePath slnFile
